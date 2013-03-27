@@ -19,7 +19,7 @@
     <h4>Class Performance</h4>
 </div>
 
-<div style="padding: 10px">
+<div style="margin: 0px">
     <h4>Course Performance</h4>
 </div>
 
