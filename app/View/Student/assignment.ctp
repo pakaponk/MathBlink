@@ -16,9 +16,9 @@
     </div>
     <br />
     <div style="display: inline-block;margin: 0px 0px 10px 0px">
-        <?php echo $this->Html->link("Start",array(),array('class'=>'btn btn-primary'));?>
+        <?php echo $this->Html->link("Start",array('controller'=>'student','action'=>'start'."/assignment=".$assignment['Assignment']['id']),array('class'=>'btn btn-primary'));?>
     </div>
     <div style="display: inline-block;margin: 0px 0px 0px 10px">
-        <?php echo $this->Html->link("Cancel",array('controller'=>'student','action'=>'index2'),array('class'=>'btn btn-primary'));?>
+        <?php echo $this->Html->link("Cancel",array('controller'=>'student','action'=>'index'),array('class'=>'btn btn-primary'));?>
     </div>
 </div>

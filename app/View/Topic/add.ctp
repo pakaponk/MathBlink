@@ -26,9 +26,9 @@
 	style="padding: 10px; width: 500px; margin: 0px auto;">
 	<?php echo $this->Form->create('Topic'); ?>
 	<?php
-	echo $this->Form->input('topic_name',array('style'=>'width:350px;height:45px;font-size:22px'));
+	echo $this->Form->input('topic_name',array('style'=>'width:350px'));
 	echo $this->Form->input('topic_description',array('type' => 'textArea' ,
-			'style'=>'width:400px;height:100px;font-size:22px;'));
+			'style'=>'width:400px;height:100px;'));
 	echo $this->Form->hidden('lesson_id', array('value' => $lesson_id));
 	echo $this->Form->hidden('creator_id', array('value' => $creator_id));
  	echo $this->Form->submit(__('Submit'),array('class' => 'btn btn-primary')); ?>

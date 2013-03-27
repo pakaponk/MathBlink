@@ -63,12 +63,14 @@ function problemsetGetTopic(urlStr,id){
         //alert("now");
         $('#ProblemDiv').empty();
     }
+    $('#ProblemDiv').empty;
     $.ajax({
         url: urlStr+'/'+lesson_id ,
         cache: false,
         type: 'GET',
         dataType: 'HTML',
         success: function (data) {
+            $('#ProblemDiv').empty();
             $('#TopicDiv').html(data);
             $('html, body').animate({
                 scrollTop: $("#TopicDiv").offset().top - 50
@@ -80,19 +82,23 @@ function problemsetGetTopic(urlStr,id){
 
 function problemsetGetProblem(urlStr,id){
     var topic = $('#'+id).val();
-    $.ajax({
-        url: urlStr+'/'+topic ,
-        cache: false,
-        type: 'GET',
-        dataType: 'HTML',
-        success: function (data) {
-            $('#ProblemDiv').html(data);
-            $('html, body').animate({
-                scrollTop: $("#problem_header").offset().top - 33
-            },1000);
-           //alert(data);
-        }
-    });
+    if(topic.length == 0){
+        $('#ProblemDiv').empty();
+    }else{
+        $.ajax({
+            url: urlStr+'/'+topic ,
+            cache: false,
+            type: 'GET',
+            dataType: 'HTML',
+            success: function (data) {
+                $('#ProblemDiv').html(data);
+                $('html, body').animate({
+                    scrollTop: $("#problem_header").offset().top - 33
+                },1000);
+               //alert(data);
+            }
+        });
+    }
 }
 
 function addProblem(latex,id){

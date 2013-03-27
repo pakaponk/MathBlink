@@ -25,8 +25,19 @@ setInterval(function(){
     }
 } , 1000);
 $js('document').ready(function(){
+    var sh = 1;
     $js('#show').click(function(){
         $js('#date').toggle();
+        if (sh == 1)
+        {
+            $js('#show h4').html('Show Time Remaining');
+            sh = 0;
+        }
+        else
+        {
+            $js('#show h4').html('Hide Time Remaining');
+            sh = 1;
+        }
     });
 });
 

@@ -9,7 +9,6 @@
 </ul>
 <h3
 	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
-	Overview of Lessons of
 	<?php echo $course[0]['Course']['course_name']; ?>
 	Course <span style="float: right"> <a class="btn btn-primary "
 		href='<?php echo $this->html->url(array(

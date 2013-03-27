@@ -6,7 +6,7 @@
  * Time: 1:52 PM
  * To change this template use File | Settings | File Templates.
  */
-
+//pr($lesson_list);
 $problemset_arr = $problemset_arr["ProblemSet"];
 $course_arr = $course_arr["Course"];
 ?>
@@ -18,7 +18,7 @@ $course_arr = $course_arr["Course"];
         'controller' => 'teacher',
         'action' => 'problemset_main')); ?> <span class="divider">/</span></li>
     <li class="active"> <?php echo $this->Html->link($problemset_arr["problemset_name"],array(
-        'controller' => 'problemset',
+        'controller' => 'problem_set',
         'action' => 'view',$problemset_arr["problemset_id"])); ?>
         <span class="divider">/</span> </li>
     <li class="active">Edit Problem set</li>

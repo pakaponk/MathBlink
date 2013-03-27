@@ -23,7 +23,7 @@
                 <li class="divider-vertical"></li>
                 <li <?php if($this->action == 'problemset_main') {?>class="active" <?php } ?>>
                     <a href="<?php echo $this->Html->url(array(
-                        'controller' => 'assignment',
+                        'controller' => 'student',
                         'action' => 'index'
                     ));?>"><strong>Assignment</strong></a>
                 </li>

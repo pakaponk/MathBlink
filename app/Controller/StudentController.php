@@ -14,12 +14,12 @@ App::uses('CakeTime', 'Utility');
 
 class StudentController extends AppController{
 
-    public $uses = array('Assignment','Student','StudentsAssignment','AssignmentScore','ProblemDataSet','ProblemsetsProblem');
+    public $uses = array('Assignment','ProblemsetsProblem','ProblemDataSet','StudentsAssignment','AssignmentScore');
 
-    public function index(){
+    public function index2(){
 
     }
-    public function index2(){
+    public function index(){
         //$assignments = $this->Assignment->findAllByClassroomId($this->Auth->user('classroom_id'));
         date_default_timezone_set("Asia/Bangkok");
         $assignments = $this->Assignment->find('all',array(
@@ -27,13 +27,6 @@ class StudentController extends AppController{
                 'classroom_id' => $this->Auth->user('classroom_id'),
                 'status' => (array('assigned','released'))
             )));
-
-        //pr("<br/><br/><br/>".$assignments);
-
-        /* if($assignments == array()){
-         $this->set('assignments',$assignments);
-        }*/
-
         foreach($assignments as $assignment)
         {
             switch($assignment['Assignment']['status'])
@@ -59,8 +52,18 @@ class StudentController extends AppController{
                 default : break;
             }
         }
-        $released = $this->Assignment->findAllByStatus('released');
-
+        $released = $this->Assignment->findAllByClassroomIdAndStatus($this->Auth->user('classroom_id'),'released');
+        for ($i = 0 ; $i < count($released) ;$i++)
+        {
+            if ($this->AssignmentScore->findByAssignmentIdAndStudentId($released[$i]['Assignment']['id'],$this->Auth->user('id')) != null)
+            {
+                $released[$i]['Done'] = 1;
+            }
+            else
+            {
+                $released[$i]['Done'] = 0;
+            }
+        }
         $this->set("assignments",$released);
     }
 
@@ -97,15 +100,58 @@ class StudentController extends AppController{
             }
         }
     }
-
     public function assignment($asid){
         //$asid = Assignment ID
         $assignment = $this->Assignment->findById($asid);
         $this->set('assignment',$assignment);
     }
+    public function start($str)
+    {
+        $asid = substr($str,11);
+        $assignment = $this->Assignment->findById($asid);
+        $problems = $this->ProblemsetsProblem->findAllByProblemsetId($assignment['ProblemSet']['problemset_id']);
+        //$lproblems = All Problems that already binded with Level and Dataset
+        $lproblems = array();
+        foreach ($problems as $problem)
+        {
+            $problem['DataSet'] = $this->ProblemDataSet->findAllByProblemLevelId($problem['ProblemLevel']['problem_level_id']);
+            array_push($lproblems,$problem);
+        }
+        //pr($lproblems);
+        $this->set('problems',$lproblems);
+
+        if ($this->request->is('post'))
+        {
+            $answers = $this->request->data('StudentsAssignment');
+            $i = 1;
+            foreach ($lproblems as $problem)
+            {
+                $this->StudentsAssignment->create();
+                $this->StudentsAssignment->set(array(
+                    'problemset_problem_id' => $problem['ProblemsetsProblem']['problemset_problem_id'],
+                    'student_id' => $this->Auth->user('id'),
+                    'assignment_id' => $asid,
+                    'problem_level_id' => $problem['ProblemsetsProblem']['problem_level_id'],
+                    'problem_level_dataset_id' => $problem['DataSet'][$answers['Problem'. $i .' hidden']]['ProblemDataSet']['problem_level_dataset_id']
+                ));
+                $std_ans = "";
+                for ($j = 1; $j <= $problem['ProblemLevel']['input_num'];$j++)
+                {
+                    if ($j > 1)
+                    {
+                        $std_ans .= ',';
+                    }
+                    $std_ans .= trim($answers['Problem'. $i . ' ' . $j]);
+                }
+                $this->StudentsAssignment->set('student_answer',$std_ans);
+                $this->StudentsAssignment->save();
+                $i++;
+            }
+            $this->redirect('setAnswerStatus/' . $this->Auth->user('id') . '/' . $asid);
+        }
+    }
 
     public function showCheckAnswer($student_id,$assignment_id){
-
         $studentAssignmentList = $this->StudentsAssignment->findAllByStudentIdAndAssignmentId($student_id,$assignment_id);
         $this->set('studentAssignmentList',$studentAssignmentList);
         $totalScore = 0;
@@ -162,54 +208,6 @@ class StudentController extends AppController{
             'question' => $totalQuestion));
 
         $this->redirect('/student/showCheckAnswer/'.$student_id.'/'.$assignment_id);
-    }
-
-    public function start($asid)
-    {
-        $assignment = $this->Assignment->findById($asid);
-        $problems = $this->ProblemsetsProblem->findAllByProblemsetId($assignment['ProblemSet']['problemset_id']);
-        //$lproblems = All Problems that already binded with Level and Dataset
-        $lproblems = array();
-        foreach ($problems as $problem)
-        {
-            if ($problem['ProblemLevel']['level_id']==2)
-            {
-                $problem['DataSet'] = $this->ProblemDataSet->findAllByProblemLevelId($problem['ProblemLevel']['problem_level_id']);
-                array_push($lproblems,$problem);
-            }
-        }
-        //pr($lproblems);
-        $this->set('problems',$lproblems);
-
-        if ($this->request->is('post'))
-        {
-            $answers = $this->request->data('StudentsAssignment');
-            $i = 1;
-            foreach ($lproblems as $problem)
-            {
-                $this->StudentsAssignment->create();
-                $this->StudentsAssignment->set(array(
-                    'problemset_problem_id' => $problem['ProblemsetsProblem']['problemset_problem_id'],
-                    'student_id' => $this->Auth->user('id'),
-                    'assignment_id' => $asid,
-                    'problem_level_id' => $problem['ProblemsetsProblem']['problem_level_id'],
-                    'problem_level_dataset_id' => $problem['DataSet'][$answers['Problem'. $i .' hidden']]['ProblemDataSet']['problem_level_dataset_id']
-                ));
-                $std_ans = "";
-                for ($j = 1; $j <= $problem['ProblemLevel']['output_num'];$j++)
-                {
-                    if ($j > 1)
-                    {
-                        $std_ans .= ',';
-                    }
-                    $std_ans .= trim($answers['Problem'. $i . ' ' . $j]);
-                }
-                $this->StudentsAssignment->set('student_answer',$std_ans);
-                $this->StudentsAssignment->save();
-                $i++;
-            }
-            $this->redirect('setAnswerStatus/' . $this->Auth->user('id') . '/' . $asid);
-        }
     }
 }
 

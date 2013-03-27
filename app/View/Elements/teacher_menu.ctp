@@ -28,6 +28,14 @@
                     ));?>"><strong>Problem set</strong></a>
                 </li>
                 <li class="divider-vertical"></li>
+                <li <?php if($this->action == 'class_report') {?>class="active" <?php } ?>>
+                    <a href="<?php echo $this->Html->url(array(
+                        'controller' => 'Teacher',
+                        'action' => 'class_report'
+                    ));?>"><strong>Class report</strong></a>
+                </li>
+                <li class="divider-vertical"></li>
+
 
             </ul>
 

@@ -31,27 +31,22 @@ MathJax.Hub.Typeset();
 			$answerStatus = $studentAssignment['StudentsAssignment']['answer_status'];
 
 			// Main text Algorithm
-			$temp = '';
 			$main_text = $studentAssignment['ProblemLevel']['main_text'];
-			$main_text = explode('i', $main_text);
-			for($k=0,$j=0;$k<count($main_text);$k++){
-				if($main_text[$k][0] == '_'){
-					$main_text[$k] = substr($main_text[$k],4);
-					$main_text[$k] = $dataList[$j++].$main_text[$k];
-				}
-				$temp .= $main_text[$k];
-			}
-			$main_text = $temp;
-			$temp = '';
-			$main_text = explode('o', $main_text);
-			for($k=0,$j=0;$k<count($main_text);$k++){
-				if($main_text[$k][0] == '_'){
-					$main_text[$k] = substr($main_text[$k], 4);
-					$main_text[$k] = '\Box'.$main_text[$k];
-				}
-				$temp = $temp.$main_text[$k];
-			}
-			$main_text = $temp;
+            $start = 0;
+            for($k=1,$j=0;$k<=$output_num;$k++){
+                $find = 'o_{' . "$k" . "}";
+                if ($k<$output_num)
+                    $main_text = str_replace($find,$dataList[$j++],$main_text);
+                else
+                    $main_text = str_replace($find,$dataList[$j++],$main_text);
+            }
+
+            $start = 0;
+            for ($k=1;$k <= $input_num;$k++)
+            {
+                $find = 'i_{' . "$k" . "}";
+                $main_text = str_replace($find,'\Box ',$main_text);
+            }
 
 
 			echo '<tr><table class="table table-bordered" cellpadding="10"

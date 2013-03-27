@@ -8,13 +8,13 @@
 
 
 <div style="padding: 10px">
-	<table class="table table-bordered" cellpadding="10"
+	<table class="table table-bordered table-cover" cellpadding="10"
 		style="text-align: center; width: 800px; margin: 0px auto;">
 		<thead>
 			<th>Course ID</th>
-			<th>Course Name</th>
+			<!--<th>Course Name</th>-->
 			<th>Course Description</th>
-			<th>School ID</th>
+			<!--<th>School ID</th>-->
 			<th>Modify</th>
 		</thead>
 		<tbody>
@@ -27,9 +27,9 @@
 
         echo '<tr>';
         echo '<td>'.$course_id.'</td>';
-        echo '<td>'.$course_name.'</td>';
-        echo '<td style="text-align: left;">'.$course_description.'</td>';
-        echo '<td>'.$school_id.'</td>';
+        //echo '<td>'.$course_name.'</td>';
+        echo '<td style="text-align: left;"><h3>'.$course_name.'</h3>'.$course_description.'</td>';
+        //echo '<td>'.$school_id.'</td>';
         echo '<td><a class="btn btn-mini" href="'.$this->Html->url('/lesson/index').'/'.$course_id.'">See Lesson</a>';
         ?>
 			<a class="btn btn-mini"

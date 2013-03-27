@@ -183,7 +183,7 @@ class ProblemSetController extends AppController {
         ));
     }
 
-    public function classHighestScore($classroom_id,$problemset_id){
+    public function class_highest_score($classroom_id,$problemset_id){
         $assignment = $this->Assignment->findByClassroomIdAndProblemsetId($classroom_id,$problemset_id);
         $grade = $assignment['Classroom']['grade'];
         $room = $assignment['Classroom']['room'];
@@ -210,7 +210,7 @@ class ProblemSetController extends AppController {
         $this->set('room',$room);
     }
 
-    public function classLowestScore($classroom_id,$problemset_id){
+    public function class_lowest_score($classroom_id,$problemset_id){
         $assignment = $this->Assignment->findByClassroomIdAndProblemsetId($classroom_id,$problemset_id);
         $grade = $assignment['Classroom']['grade'];
         $room = $assignment['Classroom']['room'];
@@ -235,6 +235,93 @@ class ProblemSetController extends AppController {
         $this->set('problemset_name',$problemset_name);
         $this->set('grade',$grade);
         $this->set('room',$room);
+    }
+
+
+    public function course_highest_score($course_id,$problemset_id){
+        $problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+        $problemset_name = $problemset['ProblemSet']['problemset_name'];
+        $course = $this->Course->findByCourseId($course_id);
+        $course_name = $course['Course']['course_name'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll(
+            'SELECT AssignmentScore.assignment_id , AssignmentScore.student_id , AssignmentScore.score , Users.*
+                        FROM assignment_score AS AssignmentScore , user AS Users
+                        WHERE AssignmentScore.student_id IN (SELECT Student.id
+                                                                                                FROM user AS Student
+                                                                                                WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
+                                                                                                                                                                FROM courses_classrooms AS CoursesClassroom
+                                                                                                                                                                WHERE CoursesClassroom.course_id = ?)
+                                                                                                AND Student.role="student")
+                        AND AssignmentScore.assignment_id IN (SELECT id
+                                                                                                        FROM assignment AS Assignment
+                                                                                                        WHERE Assignment.problemset_id = ?)
+                        AND Users.id = AssignmentScore.student_id
+                        ORDER BY AssignmentScore.score DESC
+                        LIMIT 5',
+            array($course_id, $problemset_id)
+        );
+
+        $this->set('course_name',$course_name);
+        $this->set('result',$result);
+        $this->set('problemset_name',$problemset_name);
+    }
+
+    public function course_lowest_score($course_id,$problemset_id){
+        $problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+        $problemset_name = $problemset['ProblemSet']['problemset_name'];
+        $course = $this->Course->findByCourseId($course_id);
+        $course_name = $course['Course']['course_name'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll(
+            'SELECT AssignmentScore.assignment_id , AssignmentScore.student_id , AssignmentScore.score , Users.*
+                        FROM assignment_score AS AssignmentScore , user AS Users
+                        WHERE AssignmentScore.student_id IN (SELECT Student.id
+                                                                                                FROM user AS Student
+                                                                                                WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
+                                                                                                                                                                FROM courses_classrooms AS CoursesClassroom
+                                                                                                                                                                WHERE CoursesClassroom.course_id = ?)
+                                                                                                AND Student.role="student")
+                        AND AssignmentScore.assignment_id IN (SELECT id
+                                                                                                        FROM assignment AS Assignment
+                                                                                                        WHERE Assignment.problemset_id = ?)
+                        AND Users.id = AssignmentScore.student_id
+                        ORDER BY AssignmentScore.score ASC
+                        LIMIT 5',
+            array($course_id, $problemset_id)
+        );
+
+        $this->set('course_name',$course_name);
+        $this->set('result',$result);
+        $this->set('problemset_name',$problemset_name);
+    }
+
+    public function course_progress($problemset_id){
+        $problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+        $problemset_name = $problemset['ProblemSet']['problemset_name'];
+        $course_name = $problemset['Course']['course_name'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll(
+            'SELECT count(AssignmentScore.assignment_score_id) AS assignment_complete
+                                FROM assignment_score AS AssignmentScore , assignment AS Assignment
+                                WHERE AssignmentScore.assignment_id = Assignment.id
+                                AND Assignment.problemset_id = ?',
+            array($problemset_id)
+        );
+        $result2 = $db->fetchAll(
+            'SELECT count(*) AS total_assignment
+                                FROM user AS User , assignment AS Assignment
+                        WHERE User.classroom_id = Assignment.classroom_id
+                        AND Assignment.problemset_id = ?',
+            array($problemset_id)
+        );
+
+        $this->set('result',$result);
+        $this->set('result2',$result2);
+        $this->set('problemset_name',$problemset_name);
     }
 }
 

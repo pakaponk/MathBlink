@@ -10,12 +10,21 @@
 /** @noinspection PhpUndefinedClassInspection */
 class Classroom extends AppModel{
     public $useTable = 'classrooms';
-    public $displayField = 'room';
+    //public $displayField = 'room';
 
-    public $hasMany = array(
-        'User'
+    public $virtualFields = array("full_classroom"=>"CONCAT(grade, '/' ,room)");
+    public $displayField = 'full_classroom';
+
+    var $hasMany = array(
+        'User' => array(
+            'className' => 'User',
+            'dependent'=> true,
+        ),
+        'CoursesClassroom' => array(
+            'className' => 'CoursesClassroom',
+            'dependent'=> true,
+        )
     );
-
 
     public $validate = array(
         'grade' => array(

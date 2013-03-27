@@ -12,13 +12,13 @@ class Course extends AppModel{
     public $useTable = 'course';
     public $displayField = 'course_name';
 
-
     public $hasMany = array(
-        'ProblemSet' => array(
-            'className' => 'ProblemSet',
-            'dependent' => true
+        'CoursesClassroom' => array(
+            'className' => 'CoursesClassroom',
+            'dependent'=> true,
         )
     );
+
 
     var $hasAndBelongsToMany = array(
         'Lesson' =>

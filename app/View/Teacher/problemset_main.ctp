@@ -20,6 +20,12 @@
     </span>
 </h3>
 
+ <?php if($problemset_arr["ProblemSet"] == array()){ ?>
+    <div style="background-color#333333;color: #a1a1a1;margin-left: 50px;margin-right: 50px;width: 600px"><h4 style="padding: 10px">No Problem set</h4></div>
+<?php
+}else{
+
+?>
 
 <div style="padding: 10px;width:800px;margin: 0px auto;">
     <table class="table table-bordered table-hover" >
@@ -60,3 +66,5 @@
 
 
 </div>
+
+    <?php } ?>
