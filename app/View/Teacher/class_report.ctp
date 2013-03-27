@@ -15,7 +15,7 @@
     Course Highest/Lowest Score
 </a>
 
-<div style="background-color: #f2f2f2">
+<div style="background-color: #006dcc">
     <h4>Class Performance</h4>
 </div>
 
