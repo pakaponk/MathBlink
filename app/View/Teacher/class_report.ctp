@@ -19,8 +19,9 @@
     <h4>Class Performance</h4>
 </div>
 
-<div style="margin: 0px;background-color: #333333;padding: 10px">
+<div style="background-color: #333333;padding: 10px">
     <h4>Course Performance</h4>
+    test
 </div>
 
 
