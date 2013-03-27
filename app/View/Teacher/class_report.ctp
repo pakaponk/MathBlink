@@ -22,12 +22,6 @@
 <div style="background-color: #333333;padding: 10px">
     <h4>Course Performance</h4>
     test
-
-
-
-    var x = 5 ;
-
-    var y = 6 ;
 </div>
 
 
