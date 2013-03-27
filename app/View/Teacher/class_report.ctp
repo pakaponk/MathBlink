@@ -23,7 +23,15 @@
     <h4>Course Performance</h4>
     var x = 3 ;
 
+<<<<<<< HEAD
     var y = 4 ;
+=======
+
+
+    var x = 5 ;
+
+    var y = 6 ;
+>>>>>>> bun-edit
 </div>
 
 
