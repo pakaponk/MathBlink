@@ -46,7 +46,7 @@
 				}
 			}
 			if ($complete_assignment){
-				//if(!$beTop10){
+				if(!$beTop10){
 					echo '<tr class="alert alert-block">';
 					echo '<td style="width:10%;text-align:center;">';
 					echo $student[0]['Student']['rank'];
@@ -58,7 +58,7 @@
 					echo '</td>';
 				
 					echo '</tr>';
-				//}
+				}
 			}
 			?>
 		</tbody>
