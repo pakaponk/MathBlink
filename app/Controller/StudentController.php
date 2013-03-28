@@ -14,7 +14,7 @@ App::uses('CakeTime', 'Utility');
 
 class StudentController extends AppController{
 
-    public $uses = array('Assignment','ProblemsetsProblem','ProblemDataSet','StudentsAssignment','AssignmentScore');
+    public $uses = array('User','Assignment','ProblemsetsProblem','ProblemDataSet','StudentsAssignment','AssignmentScore','Classroom');
 
     public function index2(){
 
@@ -199,7 +199,8 @@ class StudentController extends AppController{
         }
 
         // Save score
-        if(($score=$this->AssignmentScore->findByStudentIdAndAssignmentId($student_id,$assignment_id)) != array()){
+        $score=$this->AssignmentScore->findByStudentIdAndAssignmentId($student_id,$assignment_id);
+        if(!empty($score)){
             $this->AssignmentScore->id = $score['AssignmentScore']['assignment_score_id'];
         }
         $this->AssignmentScore->save(array('student_id' => $student_id ,
@@ -208,6 +209,76 @@ class StudentController extends AppController{
             'question' => $totalQuestion));
 
         $this->redirect('/student/showCheckAnswer/'.$student_id.'/'.$assignment_id);
+    }
+    
+    public function view_class_rank(){
+    	$student_id = $this->Auth->user('id');
+    	$student = $this->User->find('first',array(
+    			'conditions' => array('User.id' => $student_id),
+    			'recursive' => -1));
+    	$classroom_id = $student['User']['classroom_id'];
+    	$classroom = $this->Classroom->find('first',array(
+    			'conditions' => array('Classroom.id' => $classroom_id),
+    			'recursive' => -1));
+    	$classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+    	
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result = $db->fetchAll('SET @rank=0');
+    	$result = $db->fetchAll(
+    			'SELECT *
+    				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+    						FROM (SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.*
+                        			FROM assignment_score AS AssignmentScore , user AS Users
+                        			WHERE Users.id = AssignmentScore.student_id 
+    								AND Users.classroom_id = ? 
+    								GROUP BY AssignmentScore.student_id 
+    								HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
+    																		FROM assignment AS Assignment 
+    																		WHERE Assignment.classroom_id = ? 
+    																		AND Assignment.release_date < NOW())
+                        			ORDER BY total_score DESC , Users.id ASC  
+                        	) AS A ) AS Student 
+    				WHERE Student.student_id = ?',
+    			array($classroom_id,$classroom_id,$student_id)
+    	);
+    	
+    	$result2 = $db->fetchAll(
+    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.* 
+                        FROM assignment_score AS AssignmentScore , user AS Users 
+                        WHERE Users.id = AssignmentScore.student_id 
+    					AND Users.classroom_id = ? 
+    					GROUP BY AssignmentScore.student_id 
+    					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
+    																		FROM assignment AS Assignment 
+    																		WHERE Assignment.classroom_id = ? 
+    																		AND Assignment.release_date < NOW()) 
+                        ORDER BY total_score DESC , Users.id ASC 
+                        LIMIT 10',
+    			array($classroom_id,$classroom_id)
+    	);   	
+
+    	if(!empty($result)){
+    		$complete_assignment = true;
+    	}else{
+    		$complete_assignment = false;
+    	}
+    	
+    	if(!empty($result) && $result[0]['Student']['rank'] <= 10)
+    		$beTop10 = true;
+    	else 
+    		$beTop10 = false;
+    	
+    	$this->set('classroom_name',$classroom_name);
+    	$this->set('complete_assignment',$complete_assignment);
+    	$this->set('beTop10',$beTop10);
+    	$this->set('top10List',$result2);
+    	$this->set('student',$result);
+    	$this->set('student_id',$student_id);
+    	
+    	
+//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
+//     	pr($result2);
+    	
     }
 }
 
