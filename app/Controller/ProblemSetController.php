@@ -249,14 +249,14 @@ class ProblemSetController extends AppController {
             'SELECT AssignmentScore.assignment_id , AssignmentScore.student_id , AssignmentScore.score , Users.*
                         FROM assignment_score AS AssignmentScore , user AS Users
                         WHERE AssignmentScore.student_id IN (SELECT Student.id
-                                                                                                FROM user AS Student
-                                                                                                WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
-                                                                                                                                                                FROM courses_classrooms AS CoursesClassroom
-                                                                                                                                                                WHERE CoursesClassroom.course_id = ?)
-                                                                                                AND Student.role="student")
+                                                             FROM user AS Student
+                                                             WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
+                                                                                            FROM courses_classrooms AS CoursesClassroom
+                                                                                            WHERE CoursesClassroom.course_id = ?)
+                                                             AND Student.role="student")
                         AND AssignmentScore.assignment_id IN (SELECT id
-                                                                                                        FROM assignment AS Assignment
-                                                                                                        WHERE Assignment.problemset_id = ?)
+                                                              FROM assignment AS Assignment
+                                                              WHERE Assignment.problemset_id = ?)
                         AND Users.id = AssignmentScore.student_id
                         ORDER BY AssignmentScore.score DESC
                         LIMIT 5',
@@ -279,14 +279,14 @@ class ProblemSetController extends AppController {
             'SELECT AssignmentScore.assignment_id , AssignmentScore.student_id , AssignmentScore.score , Users.*
                         FROM assignment_score AS AssignmentScore , user AS Users
                         WHERE AssignmentScore.student_id IN (SELECT Student.id
-                                                                                                FROM user AS Student
-                                                                                                WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
-                                                                                                                                                                FROM courses_classrooms AS CoursesClassroom
-                                                                                                                                                                WHERE CoursesClassroom.course_id = ?)
-                                                                                                AND Student.role="student")
+                                                             FROM user AS Student
+                                                             WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
+                                                                                            FROM courses_classrooms AS CoursesClassroom
+                                                                                            WHERE CoursesClassroom.course_id = ?)
+                                                             AND Student.role="student")
                         AND AssignmentScore.assignment_id IN (SELECT id
-                                                                                                        FROM assignment AS Assignment
-                                                                                                        WHERE Assignment.problemset_id = ?)
+                                                              FROM assignment AS Assignment
+                                                              WHERE Assignment.problemset_id = ?)
                         AND Users.id = AssignmentScore.student_id
                         ORDER BY AssignmentScore.score ASC
                         LIMIT 5',
@@ -299,29 +299,65 @@ class ProblemSetController extends AppController {
     }
 
     public function course_progress($problemset_id){
-        $problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
-        $problemset_name = $problemset['ProblemSet']['problemset_name'];
-        $course_name = $problemset['Course']['course_name'];
-
-        $db = $this->AssignmentScore->getDataSource();
-        $result = $db->fetchAll(
-            'SELECT count(AssignmentScore.assignment_score_id) AS assignment_complete
-                                FROM assignment_score AS AssignmentScore , assignment AS Assignment
-                                WHERE AssignmentScore.assignment_id = Assignment.id
-                                AND Assignment.problemset_id = ?',
-            array($problemset_id)
-        );
-        $result2 = $db->fetchAll(
-            'SELECT count(*) AS total_assignment
-                                FROM user AS User , assignment AS Assignment
-                        WHERE User.classroom_id = Assignment.classroom_id
-                        AND Assignment.problemset_id = ?',
-            array($problemset_id)
-        );
-
-        $this->set('result',$result);
-        $this->set('result2',$result2);
-        $this->set('problemset_name',$problemset_name);
+    	$problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+    	$problemset_name = $problemset['ProblemSet']['problemset_name'];
+    	$course_id = $problemset['ProblemSet']['course_id'];
+    	$course = $this->Course->findByCourseId($course_id);
+    	$course_name = $course['Course']['course_name'];
+    	
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result = $db->fetchAll(
+    			'SELECT count(AssignmentScore.assignment_score_id) AS assignment_complete 
+				FROM assignment_score AS AssignmentScore , assignment AS Assignment 
+				WHERE AssignmentScore.assignment_id = Assignment.id 
+				AND Assignment.problemset_id = ?',
+    			array($problemset_id)
+    	);
+    	$result2 = $db->fetchAll(
+    			'SELECT count(*) AS total_assignment 
+				FROM user AS User , assignment AS Assignment
+    			WHERE User.classroom_id = Assignment.classroom_id
+    			AND Assignment.problemset_id = ?',
+    			array($problemset_id)
+    	);
+    	
+    	$this->set('result',$result);
+    	$this->set('result2',$result2);
+    	$this->set('problemset_name',$problemset_name);
+    	$this->set('course_name',$course_name);
+    	
+    }
+    
+    public function class_progress($classroom_id,$problemset_id){
+    	$problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+    	$problemset_name = $problemset['ProblemSet']['problemset_name'];
+    	$classroom = $this->Classroom->findById($classroom_id);
+    	$classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+    	 
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result = $db->fetchAll(
+    			'SELECT count(AssignmentScore.assignment_score_id) AS assignment_complete
+				FROM assignment_score AS AssignmentScore , assignment AS Assignment , user AS User
+				WHERE AssignmentScore.assignment_id = Assignment.id 
+    			AND User.id = AssignmentScore.student_id 
+    			AND User.classroom_id = ? 
+				AND Assignment.problemset_id = ?',
+    			array($classroom_id,$problemset_id)
+    	);
+    	$result2 = $db->fetchAll(
+    			'SELECT count(*) AS total_assignment
+				FROM user AS User , assignment AS Assignment
+    			WHERE User.classroom_id = Assignment.classroom_id 
+    			AND Assignment.classroom_id = ? 
+    			AND Assignment.problemset_id = ?',
+    			array($classroom_id,$problemset_id)
+    	);
+    	 
+    	$this->set('result',$result);
+    	$this->set('result2',$result2);
+    	$this->set('problemset_name',$problemset_name);
+    	$this->set('classroom_name',$classroom_name);
+    	 
     }
 }
 

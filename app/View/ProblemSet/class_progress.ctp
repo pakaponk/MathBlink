@@ -1,6 +1,6 @@
 <h3
 	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
-	Course <?php echo $course_name; ?> Progress of Problemset
+	Class <?php echo $classroom_name; ?> Progress of Problemset
 	<?php echo $problemset_name; ?>
 </h3>
 
