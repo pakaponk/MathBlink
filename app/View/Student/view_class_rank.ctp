@@ -1,6 +1,6 @@
 <h3
 	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
-	Class <?php echo $classroom_name; ?> Ranking</h3>
+	Class <?php echo $classroom_name; ?> Ranking of Lesson <?php echo $lesson_name; ?></h3>
 
 <div style="padding: 10px">
 

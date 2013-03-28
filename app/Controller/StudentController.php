@@ -14,7 +14,7 @@ App::uses('CakeTime', 'Utility');
 
 class StudentController extends AppController{
 
-    public $uses = array('User','Assignment','ProblemsetsProblem','ProblemDataSet','StudentsAssignment','AssignmentScore','Classroom');
+    public $uses = array('User','Assignment','ProblemsetsProblem','ProblemDataSet','StudentsAssignment','AssignmentScore','Classroom','Lesson');
 
     public function index2(){
 
@@ -211,7 +211,7 @@ class StudentController extends AppController{
         $this->redirect('/student/showCheckAnswer/'.$student_id.'/'.$assignment_id);
     }
     
-    public function view_class_rank(){
+    public function view_class_rank($lesson_id){
     	$student_id = $this->Auth->user('id');
     	$student = $this->User->find('first',array(
     			'conditions' => array('User.id' => $student_id),
@@ -221,6 +221,10 @@ class StudentController extends AppController{
     			'conditions' => array('Classroom.id' => $classroom_id),
     			'recursive' => -1));
     	$classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+    	$lesson = $this->Lesson->find('first',array(
+    			'conditions' => array('Lesson.lesson_id' => $lesson_id),
+    			'recursive' => -1));
+    	$lesson_name = $lesson['Lesson']['lesson_name'];
     	
     	$db = $this->AssignmentScore->getDataSource();
     	$result = $db->fetchAll('SET @rank=0');
@@ -231,6 +235,14 @@ class StudentController extends AppController{
                         			FROM assignment_score AS AssignmentScore , user AS Users
                         			WHERE Users.id = AssignmentScore.student_id 
     								AND Users.classroom_id = ? 
+    								AND AssignmentScore.assignment_id IN (SELECT Assignment.id 
+    																		FROM assignment AS Assignment , problemset AS Problemset 
+    																		WHERE Assignment.problemset_id = Problemset.problemset_id 
+    																		AND Problemset.course_id IN (SELECT CoursesLesson.course_id 
+    																										FROM courses_lessons AS CoursesLesson 
+    																										WHERE CoursesLesson.lesson_id = ?
+    																										)
+    																		)
     								GROUP BY AssignmentScore.student_id 
     								HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
     																		FROM assignment AS Assignment 
@@ -239,7 +251,7 @@ class StudentController extends AppController{
                         			ORDER BY total_score DESC , Users.id ASC  
                         	) AS A ) AS Student 
     				WHERE Student.student_id = ?',
-    			array($classroom_id,$classroom_id,$student_id)
+    			array($classroom_id,$lesson_id,$classroom_id,$student_id)
     	);
     	
     	$result2 = $db->fetchAll(
@@ -247,6 +259,14 @@ class StudentController extends AppController{
                         FROM assignment_score AS AssignmentScore , user AS Users 
                         WHERE Users.id = AssignmentScore.student_id 
     					AND Users.classroom_id = ? 
+    					AND AssignmentScore.assignment_id IN (SELECT Assignment.id 
+    																		FROM assignment AS Assignment , problemset AS Problemset 
+    																		WHERE Assignment.problemset_id = Problemset.problemset_id 
+    																		AND Problemset.course_id IN (SELECT CoursesLesson.course_id 
+    																										FROM courses_lessons AS CoursesLesson 
+    																										WHERE CoursesLesson.lesson_id = ?
+    																										)
+    																		)
     					GROUP BY AssignmentScore.student_id 
     					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
     																		FROM assignment AS Assignment 
@@ -254,7 +274,7 @@ class StudentController extends AppController{
     																		AND Assignment.release_date < NOW()) 
                         ORDER BY total_score DESC , Users.id ASC 
                         LIMIT 10',
-    			array($classroom_id,$classroom_id)
+    			array($classroom_id,$lesson_id,$classroom_id)
     	);   	
 
     	if(!empty($result)){
@@ -268,6 +288,7 @@ class StudentController extends AppController{
     	else 
     		$beTop10 = false;
     	
+    	$this->set('lesson_name',$lesson_name);
     	$this->set('classroom_name',$classroom_name);
     	$this->set('complete_assignment',$complete_assignment);
     	$this->set('beTop10',$beTop10);
