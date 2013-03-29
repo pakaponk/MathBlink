@@ -237,7 +237,7 @@ class StudentController extends AppController{
     	$result = $db->fetchAll(
     			'SELECT *
     				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
-    						FROM (SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.*
+    						FROM (SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , SUM(AssignmentScore.question) AS total_question , Users.*
                         			FROM assignment_score AS AssignmentScore , user AS Users
                         			WHERE Users.id = AssignmentScore.student_id 
     								AND Users.classroom_id = ? 
@@ -250,22 +250,14 @@ class StudentController extends AppController{
     																										)
     																		)
     								GROUP BY AssignmentScore.student_id 
-    								HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
-    																					FROM assignment AS Assignment , problemset AS Problemset 
-    																					WHERE Assignment.classroom_id = ? 
-    																					AND Assignment.problemset_id = Problemset.problemset_id 
-    																					AND Problemset.course_id IN (SELECT CoursesLesson.course_id 
-    																												FROM courses_lessons AS CoursesLesson 
-    																												WHERE CoursesLesson.lesson_id = ?)
-    																					AND Assignment.release_date <= NOW())
                         			ORDER BY total_score DESC , Users.id ASC  
                         	) AS A ) AS Student 
     				WHERE Student.student_id = ?',
-    			array($classroom_id,$lesson_id,$classroom_id,$lesson_id,$student_id)
+    			array($classroom_id,$lesson_id,$student_id)
     	);
     	
     	$result2 = $db->fetchAll(
-    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.* 
+    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , SUM(AssignmentScore.question) AS total_question , Users.* 
                         FROM assignment_score AS AssignmentScore , user AS Users 
                         WHERE Users.id = AssignmentScore.student_id 
     					AND Users.classroom_id = ? 
@@ -278,20 +270,24 @@ class StudentController extends AppController{
     																										)
     																		)
     					GROUP BY AssignmentScore.student_id 
-    					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
-    																					FROM assignment AS Assignment , problemset AS Problemset 
-    																					WHERE Assignment.classroom_id = ? 
-    																					AND Assignment.problemset_id = Problemset.problemset_id 
-    																					AND Problemset.course_id IN (SELECT CoursesLesson.course_id 
-    																												FROM courses_lessons AS CoursesLesson 
-    																												WHERE CoursesLesson.lesson_id = ?)
-    																					AND Assignment.release_date <= NOW())
                         ORDER BY total_score DESC , Users.id ASC 
                         LIMIT 10',
-    			array($classroom_id,$lesson_id,$classroom_id,$lesson_id)
-    	);   	
+    			array($classroom_id,$lesson_id)
+    	);   
 
-    	if(!empty($result)){
+    	$result3 = $db->fetchAll('
+    			SELECT COUNT(Assignment.id) AS total_assignment 
+    			FROM assignment AS Assignment , problemset AS Problemset
+    			WHERE Assignment.classroom_id = ?
+    			AND Assignment.problemset_id = Problemset.problemset_id
+    			AND Problemset.course_id IN (SELECT CoursesLesson.course_id
+    										FROM courses_lessons AS CoursesLesson
+    										WHERE CoursesLesson.lesson_id = ?)
+    			AND Assignment.release_date <= NOW()',
+    			array($classroom_id,$lesson_id)
+    	);
+
+    	if(!empty($result) && ($result3[0][0]['total_assignment']==$result[0]['Student']['total_do_assignment'])){
     		$complete_assignment = true;
     	}else{
     		$complete_assignment = false;
@@ -312,7 +308,7 @@ class StudentController extends AppController{
     	
     	
 //     	echo '<br/><br/><br/><br/><br/><br/><br/>';
-//     	pr($result2);
+//     	pr($result);
     	
     }
     
@@ -349,7 +345,6 @@ class StudentController extends AppController{
                           										WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
                           										AND CoursesClassroom2.classroom_id = ?)
 									GROUP BY User.id
-									HAVING total_do_assignment = total_assignment 
                         			ORDER BY total_score DESC , User.id ASC
                         	) AS A ) AS Student
     				WHERE Student.student_id = ?',
@@ -373,13 +368,12 @@ class StudentController extends AppController{
                           						WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
                           						AND CoursesClassroom2.classroom_id = ?)
 					GROUP BY User.id
-					HAVING total_do_assignment = total_assignment 
                     ORDER BY total_score DESC , User.id ASC 
                     LIMIT 10',
     			array($lesson_id,$classroom_id)
     	);
     
-    	if(!empty($result)){
+    	if(!empty($result) && ($result[0]['Student']['total_do_assignment']==$result[0]['Student']['total_assignment'])){
     		$complete_assignment = true;
     	}else{
     		$complete_assignment = false;
@@ -403,7 +397,7 @@ class StudentController extends AppController{
 //     	pr($result2);
     }
     
-   /* private function getTopClassList(){
+/*   private function getTopClassList(){
     	$student_id = $this->Auth->user('id');
     	$student = $this->User->find('first',array(
     			'conditions' => array('User.id' => $student_id),
@@ -449,7 +443,7 @@ class StudentController extends AppController{
     																		WHERE Assignment.classroom_id = ?
     																		AND Assignment.release_date <= NOW())
                         ORDER BY total_score DESC , Users.id ASC
-                        LIMIT 10',
+                        LIMIT 3',
     			array($classroom_id,$lesson_id,$classroom_id)
     	);
     	
@@ -459,24 +453,17 @@ class StudentController extends AppController{
     		$complete_assignment = false;
     	}
     	 
-    	if(!empty($result) && $result[0]['Student']['rank'] <= 10)
-    		$beTop10 = true;
+    	if(!empty($result) && $result[0]['Student']['rank'] <= 3)
+    		$beTop3 = true;
     	else
-    		$beTop10 = false;
+    		$beTop3 = false;
     	 
-    	$this->set('lesson_name',$lesson_name);
-    	$this->set('classroom_name',$classroom_name);
-    	$this->set('complete_assignment',$complete_assignment);
-    	$this->set('beTop10',$beTop10);
-    	$this->set('top10List',$result2);
-    	$this->set('student',$result);
-    	$this->set('student_id',$student_id);
-    	 
-    	 
-    	//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
-    	//     	pr($result2);
+    	$return = array($result,$result2,'complete_assignment' => $complete_assignment,'be_top3' => $beTop3);
+    	
+    	return $return;
     	   
-    }*/
+    }
+    */
 }
 
 ?>

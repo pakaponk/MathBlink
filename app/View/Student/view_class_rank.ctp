@@ -3,10 +3,6 @@
 	Class <?php echo $classroom_name; ?> Ranking of Lesson <?php echo $lesson_name; ?></h3>
 
 <div style="padding: 10px">
-
-<?php 
-	if(!empty($top10List)){
-		?>
 	<table class="table table-bordered" cellpadding="10"
 		style="text-align: center; width: 800px; margin: 0px auto;">
 		<thead>
@@ -45,7 +41,6 @@
 					echo '</tr>';
 				}
 			}
-			if ($complete_assignment){
 				if(!$beTop10){
 					echo '<tr class="alert alert-block">';
 					echo '<td style="width:10%;text-align:center;">';
@@ -59,19 +54,13 @@
 				
 					echo '</tr>';
 				}
-			}
 			?>
 		</tbody>
 	</table>
 	<?php
 		if(!$complete_assignment){
 			echo '<div class="alert alert-error" style="margin-top:20px;">';
-			echo 'You\'re not complete all of assignments';
+			echo 'You\'re not complete any assignments';
 			echo '</div>';
-		}
-	}else {
-		echo '<div class="alert alert-error">';
-		echo 'No one has complete all of assignments';
-		echo '</div>';
 		} ?>
 </div>
