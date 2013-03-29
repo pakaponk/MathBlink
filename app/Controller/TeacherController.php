@@ -352,13 +352,17 @@ class TeacherController extends AppController{
     																										)
     																		)
     					GROUP BY AssignmentScore.student_id
-    					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id)
-    																		FROM assignment AS Assignment
-    																		WHERE Assignment.classroom_id = ?
-    																		AND Assignment.release_date <= NOW())
+    					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id) 
+    																					FROM assignment AS Assignment , problemset AS Problemset 
+    																					WHERE Assignment.classroom_id = ? 
+    																					AND Assignment.problemset_id = Problemset.problemset_id 
+    																					AND Problemset.course_id IN (SELECT CoursesLesson.course_id 
+    																												FROM courses_lessons AS CoursesLesson 
+    																												WHERE CoursesLesson.lesson_id = ?)
+    																					AND Assignment.release_date <= NOW())
                         ORDER BY total_score DESC , Users.id ASC
                         LIMIT 10',
-    			array($classroom_id,$lesson_id,$classroom_id)
+    			array($classroom_id,$lesson_id,$classroom_id,$lesson_id)
     	);
     	 
     	$this->set('lesson_name',$lesson_name);
