@@ -397,7 +397,8 @@ class StudentController extends AppController{
 //     	pr($result2);
     }
     
-/*   private function getTopClassList(){
+    
+    private function getTopClassList(){
     	$student_id = $this->Auth->user('id');
     	$student = $this->User->find('first',array(
     			'conditions' => array('User.id' => $student_id),
@@ -409,61 +410,53 @@ class StudentController extends AppController{
     	$result = $db->fetchAll(
     			'SELECT *
     				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
-    						FROM (SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.*
+    						FROM (SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , SUM(AssignmentScore.question) AS total_question , Users.*
                         			FROM assignment_score AS AssignmentScore , user AS Users
-                        			WHERE Users.id = AssignmentScore.student_id
+                        			WHERE Users.id = AssignmentScore.student_id 
     								AND Users.classroom_id = ? 
-    								GROUP BY AssignmentScore.student_id
-    								HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id)
-    																		FROM assignment AS Assignment
-    																		WHERE Assignment.classroom_id = ?
-    																		AND Assignment.release_date <= NOW())
-                        			ORDER BY total_score DESC , Users.id ASC
-                        	) AS A ) AS Student
+    								GROUP BY AssignmentScore.student_id 
+                        			ORDER BY total_score DESC , Users.id ASC  
+                        	) AS A ) AS Student 
     				WHERE Student.student_id = ?',
-    			array($classroom_id,$classroom_id,$student_id)
+    			array($classroom_id,$student_id)
     	);
     	 
     	$result2 = $db->fetchAll(
-    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , SUM(AssignmentScore.question) AS total_question , Users.*
-                        FROM assignment_score AS AssignmentScore , user AS Users
-                        WHERE Users.id = AssignmentScore.student_id
-    					AND Users.classroom_id = ?
-    					AND AssignmentScore.assignment_id IN (SELECT Assignment.id
-    																		FROM assignment AS Assignment , problemset AS Problemset
-    																		WHERE Assignment.problemset_id = Problemset.problemset_id
-    																		AND Problemset.course_id IN (SELECT CoursesLesson.course_id
-    																										FROM courses_lessons AS CoursesLesson
-    																										WHERE CoursesLesson.lesson_id = ?
-    																										)
-    																		)
-    					GROUP BY AssignmentScore.student_id
-    					HAVING COUNT(AssignmentScore.assignment_score_id) = (SELECT COUNT(Assignment.id)
-    																		FROM assignment AS Assignment
-    																		WHERE Assignment.classroom_id = ?
-    																		AND Assignment.release_date <= NOW())
-                        ORDER BY total_score DESC , Users.id ASC
+    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , SUM(AssignmentScore.question) AS total_question , Users.* 
+                        FROM assignment_score AS AssignmentScore , user AS Users 
+                        WHERE Users.id = AssignmentScore.student_id 
+    					AND Users.classroom_id = ? 
+    					GROUP BY AssignmentScore.student_id 
+                        ORDER BY total_score DESC , Users.id ASC 
                         LIMIT 3',
-    			array($classroom_id,$lesson_id,$classroom_id)
+    			array($classroom_id)
     	);
     	
-    	if(!empty($result)){
+    	$result3 = $db->fetchAll('
+    			SELECT COUNT(Assignment.id) AS total_assignment 
+    			FROM assignment AS Assignment 
+    			WHERE Assignment.classroom_id = ? 
+    			AND Assignment.release_date <= NOW()',
+    			array($classroom_id)
+    	);
+    	
+    	if(!empty($result) && ($result3[0][0]['total_assignment']==$result[0]['Student']['total_do_assignment'])){
     		$complete_assignment = true;
     	}else{
     		$complete_assignment = false;
     	}
     	 
-    	if(!empty($result) && $result[0]['Student']['rank'] <= 3)
+    	if(!empty($result) && $result[0][0]['Student']['rank'] <= 3)
     		$beTop3 = true;
     	else
     		$beTop3 = false;
     	 
-    	$return = array($result,$result2,'complete_assignment' => $complete_assignment,'be_top3' => $beTop3);
+    	$return = array('Student' => $result[0]['Student'],'List' => $result2,'total_assignment' => $result3[0][0]['total_assignment'] ,'complete_assignment' => $complete_assignment,'be_top3' => $beTop3);
     	
     	return $return;
     	   
     }
-    */
+    
 }
 
 ?>
