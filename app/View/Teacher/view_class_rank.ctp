@@ -1,6 +1,6 @@
 <h3
 	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
-	Class <?php echo $classroom_name; ?> Ranking of Lesson <?php echo $lesson_name; ?></h3>
+	Class Ranking of Lesson <?php echo $lesson_name; ?></h3>
 
 <div style="padding: 10px">
 
@@ -24,7 +24,7 @@
 				echo '</td>';
 
 				echo '<td>';
-				echo $top10List[$i]['Users']['title'].$top10List[$i]['Users']['first_name'].' '.$top10List[$i]['Users']['last_name'];
+				echo $top10List[$i]['User']['title'].$top10List[$i]['User']['first_name'].' '.$top10List[$i]['User']['last_name'];
 
 				echo '</td>';
 

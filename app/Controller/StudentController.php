@@ -446,7 +446,7 @@ class StudentController extends AppController{
     		$complete_assignment = false;
     	}
     	 
-    	if(!empty($result) && $result[0][0]['Student']['rank'] <= 3)
+    	if(!empty($result) && $result[0]['Student']['rank'] <= 3)
     		$beTop3 = true;
     	else
     		$beTop3 = false;
@@ -457,6 +457,12 @@ class StudentController extends AppController{
     	   
     }
     
+    // public function test(){
+    	// $result = $this->getTopClassList();
+    	
+    	// echo '<br/><br/><br/><br/><br/><br/><br/>';
+    	// pr($result);
+    // }
 }
 
 ?>

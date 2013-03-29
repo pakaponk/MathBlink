@@ -324,14 +324,6 @@ class TeacherController extends AppController{
     
     public function view_class_rank($lesson_id){
     	$teacher_id = $this->Auth->user('id');
-    	$teacher = $this->User->find('first',array(
-    			'conditions' => array('User.id' => $teacher_id),
-    			'recursive' => -1));
-    	$classroom_id = $teacher['User']['classroom_id'];
-    	$classroom = $this->Classroom->find('first',array(
-    			'conditions' => array('Classroom.id' => $classroom_id),
-    			'recursive' => -1));
-    	$classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
     	$lesson = $this->Lesson->find('first',array(
     			'conditions' => array('Lesson.lesson_id' => $lesson_id),
     			'recursive' => -1));
@@ -339,26 +331,26 @@ class TeacherController extends AppController{
     	 
     	$db = $this->AssignmentScore->getDataSource();
     	$result2 = $db->fetchAll(
-    			'SELECT AssignmentScore.student_id , SUM(AssignmentScore.score) AS total_score , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , SUM(AssignmentScore.question) AS total_question , Users.*
-                        FROM assignment_score AS AssignmentScore , user AS Users
-                        WHERE Users.id = AssignmentScore.student_id
-    					AND Users.classroom_id = ?
-    					AND AssignmentScore.assignment_id IN (SELECT Assignment.id
-    																		FROM assignment AS Assignment , problemset AS Problemset
-    																		WHERE Assignment.problemset_id = Problemset.problemset_id
-    																		AND Problemset.course_id IN (SELECT CoursesLesson.course_id
-    																										FROM courses_lessons AS CoursesLesson
-    																										WHERE CoursesLesson.lesson_id = ?
-    																										)
-    																		)
-    					GROUP BY AssignmentScore.student_id
-                        ORDER BY total_score DESC , Users.id ASC
-                        LIMIT 10',
-    			array($classroom_id,$lesson_id)
+    			'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name 
+					FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+							(Assignment.id = AssignmentScore.assignment_id 
+        					AND User.id = AssignmentScore.student_id)
+					WHERE User.role = "student" 
+					AND Assignment.problemset_id IN (SELECT Problemset.problemset_id
+														FROM problemset AS Problemset INNER JOIN 
+                                							courses_lessons AS CoursesLesson 
+                                        					ON (Problemset.course_id = CoursesLesson.course_id)
+                                						WHERE CoursesLesson.lesson_id = ?)
+					AND User.classroom_id IN (SELECT TeachersClassroom.classroom_id 
+    											FROM teachers_classrooms AS TeachersClassroom 
+    											WHERE TeachersClassroom.teacher_id = ?)
+					GROUP BY User.id
+                    ORDER BY total_score DESC , User.id ASC 
+                    LIMIT 10',
+    			array($lesson_id,$teacher_id)
     	);
     	 
     	$this->set('lesson_name',$lesson_name);
-    	$this->set('classroom_name',$classroom_name);
     	$this->set('top10List',$result2);    	 
     	 
     	//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
@@ -368,10 +360,6 @@ class TeacherController extends AppController{
     
     public function view_course_rank($lesson_id){
     	$teacher_id = $this->Auth->user('id');
-    	$teacher = $this->User->find('first',array(
-    			'conditions' => array('User.id' => $teacher_id),
-    			'recursive' => -1));
-    	$classroom_id = $teacher['User']['classroom_id'];
     	
     	$lesson = $this->Lesson->find('first',array(
     			'conditions' => array('Lesson.lesson_id' => $lesson_id),
@@ -394,11 +382,13 @@ class TeacherController extends AppController{
 			  									FROM courses_classrooms AS CoursesClassroom , 
                           							courses_classrooms AS CoursesClassroom2
                           						WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
-                          						AND CoursesClassroom2.classroom_id = ?)
+                          						AND CoursesClassroom2.classroom_id IN (SELECT TeachersClassroom.classroom_id 
+    																					FROM teachers_classrooms AS TeachersClassroom 
+    																					WHERE TeachersClassroom.teacher_id = ?))
 					GROUP BY User.id
                     ORDER BY total_score DESC , User.id ASC 
                     LIMIT 10',
-    			array($lesson_id,$classroom_id)
+    			array($lesson_id,$teacher_id)
     	);
     
     	$this->set('lesson_name',$lesson_name);
