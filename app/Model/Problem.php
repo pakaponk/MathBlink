@@ -30,8 +30,42 @@ class Problem extends AppModel{
             'finderQuery'            => '',
             'deleteQuery'            => '',
             'insertQuery'            => ''
+        ),
+        'Technique' =>
+        array(
+            'className'              => 'Technique',
+            'joinTable'              => 'problems_tags',
+            'foreignKey'             => 'problem_id',
+            'associationForeignKey'  => 'tag_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        ),
+        'Concept' =>
+        array(
+            'className'              => 'Concept',
+            'joinTable'              => 'problems_tags',
+            'foreignKey'             => 'problem_id',
+            'associationForeignKey'  => 'tag_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
         )
     );
+
+
 }
 
 ?>

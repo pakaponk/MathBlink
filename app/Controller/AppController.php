@@ -21,6 +21,7 @@
  */
 
 App::uses('Controller', 'Controller');
+App::uses('CakeTime','Utility');
 
 /**
  * Application Controller
@@ -44,8 +45,9 @@ class AppController extends Controller {
             'userModel'	=> 'User'
         )
     );
+    //var $helpers = array('Time');
 
-    public $helpers = array('Javascript', 'Ajax','Js' => array('Jquery'));
+    public $helpers = array('Javascript', 'Ajax','Js' => array('Jquery'),'Time');
 
     public $layout = 'main';
 

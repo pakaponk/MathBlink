@@ -42,6 +42,13 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
     echo $this->Javascript->link('jquery.jslatex');
     echo $this->Javascript->link('zebra_datepicker');
     echo $this->Javascript->link('jquery-scrolltofixed');
+
+    echo $this->Html->css('fullcalendar.css');
+    echo $this->Html->css('fullcalendar.print.css');
+
+    echo $this->Javascript->link('jquery-ui-1.10.2.custom.min');
+    echo $this->Javascript->link('fullcalendar.min');
+
     ?>
    <!-- <script type="text/javascript" src="http://localhost:8888/mathblink/app/webroot/js/MathJax.js?config=TeX-AMS_HTML-full"></script>-->
 

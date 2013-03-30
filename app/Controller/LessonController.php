@@ -26,6 +26,7 @@ class LessonController extends AppController{
         $this->set('course_id',$course_id);
         $course_name = $courseData['Course']['course_name'];
         $this->set('course_name',$course_name);
+        $this->set('user_role',$this->Auth->user('role'));
     }
 
     public function add($course_id){
@@ -108,6 +109,8 @@ class LessonController extends AppController{
         $lessonData = $this->Lesson->findAllByLessonId($lesson_id);
         $courseData = $this->Course->findByCourseId($course_id);
         $course_name = $courseData['Course']['course_name'];
+        //$start = explode("-",$courseData['Course']['start_date']);
+        //$end = explode()
         $this->set('course_id',$course_id);
         $this->set('course_name',$course_name);
         $this->set('data',$lessonData);
@@ -131,6 +134,24 @@ class LessonController extends AppController{
         //$this->Lesson->delete($lesson_id,true);
         $this->Session->setFlash(__('The lesson has been deleted'),'flash_complete');
         $this->redirect($this->referer());
+    }
+
+    public function view($course_id,$lesson_id){
+        $arr = $this->Lesson->findByLessonId($lesson_id);
+        $course = $this->Course->findByCourseId($course_id);
+        $this->set('data',$arr);
+        $this->set('course_data',$course);
+        if($this->request->is('post')){
+            $this->Lesson->save($this->request->data);
+            $this->redirect($this->referer());
+        }
+        //pr($course);
+    }
+
+    public function beforeRender(){
+        parent::beforeRender();
+        $auth = $this->Auth->user('role');
+        $this->set('auth',$auth);
     }
 
 }

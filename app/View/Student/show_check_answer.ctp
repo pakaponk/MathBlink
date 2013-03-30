@@ -1,17 +1,6 @@
-<script type="text/javascript"
-	src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({tex2jax: {inlineMath: [['$$','$$'], ['\\(','\\)']]}});
-<!--MathJax.Hub.Typeset();-->
-</script>
-
-<script>
-MathJax.Hub.Typeset();
-</script>
 
 <h3
-	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
+	style="padding: 10px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
 	Score Summary</h3>
 
 <div style="padding: 10px">

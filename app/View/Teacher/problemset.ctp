@@ -70,13 +70,11 @@ $course_arr = $course_arr["Course"];
             'label'=>false,
             'style'=>'width:330px',
             'onchange'=>'javascript:problemsetGetTopic("/mathblink/teacher/problemsetGetTopic","lesson_id");'));
+        /*TODO
+            /mathblink/teacher/problemsetGetTopic should be changed next time we deploy
+        */
     ?>
     <?php
-        /*echo $this->ajax->link(
-        '<span>View Post</span>',
-        array( 'controller' => 'teacher', 'action' => 'getAjax', 1 ),
-        array( 'update' => 'post', 'escape' => false)
-    );*/
     ?>
     <div id="TopicDiv"></div>
     <div id="ProblemDiv"></div>
@@ -100,7 +98,7 @@ $course_arr = $course_arr["Course"];
 
             <div style="font-size: 13px;margin-bottom: -5px;border-bottom: 1px solid #b3b3b3" id="<?php echo $id ; ?>">
                 <span style="width:50px"><?php echo $latex ; ?></span>
-                <a href="javascript:removeProblem('<?php echo $latex ;?>',<?php echo $id ; ?>)" class="btn btn-mini">remove</a></div>
+                <a href="javascript:removeProblem('<?php echo $latex ;?>','<?php echo $id ; ?>')" class="btn btn-mini">remove</a></div>
 
             <?php endforeach ?>
 

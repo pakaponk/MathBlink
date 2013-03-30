@@ -27,10 +27,35 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
         <?php echo $title_for_layout; ?>
     </title>
     <?php
+   /* echo $this->Html->meta('icon');
+    echo $this->Html->css('bootstrap-responsive.css');
+    echo $this->Html->css('bootstrap.css');
+    echo $this->Html->css('main.css');
+
+    echo $this->Html->css('fullcalendar.css');
+    echo $this->Html->css('fullcalendar.print.css');
+
+    echo $this->Javascript->link('jquery-ui-1.10.2.custom.min');
+    echo $this->Javascript->link('fullcalendar.min');*/
+
+
     echo $this->Html->meta('icon');
     echo $this->Html->css('bootstrap-responsive.css');
     echo $this->Html->css('bootstrap.css');
     echo $this->Html->css('main.css');
+    echo $this->Html->css('zebra_datepicker.css');
+
+    echo $this->Javascript->link('jquery-1.4.2.min');
+    echo $this->Javascript->link('ajax');
+    echo $this->Javascript->link('jquery.jslatex');
+    echo $this->Javascript->link('zebra_datepicker');
+    echo $this->Javascript->link('jquery-scrolltofixed');
+
+    echo $this->Html->css('fullcalendar.css');
+    echo $this->Html->css('fullcalendar.print.css');
+
+    echo $this->Javascript->link('jquery-ui-1.10.2.custom.min');
+    echo $this->Javascript->link('fullcalendar.min');
     ?>
     <script type="text/javascript"
             src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
@@ -47,7 +72,7 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
 		</div>-->
 
     <?php echo $this->Session->flash(); ?>
-
+<br/>
     <?php echo $this->fetch('content'); ?>
 
 </div>

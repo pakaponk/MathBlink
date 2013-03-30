@@ -28,12 +28,14 @@
 	$description = $data[0]['Topic']['topic_description'];
 
 	echo $this->Form->input('topic_name',array('value' => $name,
-			'style'=>'width:350px;height:45px;'));
+			'style'=>'width:400px;'));
 
 	echo $this->Form->input('topic_description',array('value' => $description,
 				'type' => 'textArea' ,
 				'style'=>'width:400px;height:100px;'));
 
+    echo $this->Form->input('start_date');
+    echo $this->Form->input('end_date');
 		echo $this->Form->hidden('creator_id', array('value' => $creator_id));	?>
 	<?php
 	echo $this->Form->submit('Edit Topic',array(

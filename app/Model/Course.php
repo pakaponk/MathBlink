@@ -36,6 +36,38 @@ class Course extends AppModel{
             'finderQuery'            => '',
             'deleteQuery'            => '',
             'insertQuery'            => ''
+        ),
+        'User' =>
+        array(
+            'className'              => 'User',
+            'joinTable'              => 'teachers_courses',
+            'foreignKey'             => 'course_id',
+            'associationForeignKey'  => 'teacher_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        ),
+        'Classroom' =>
+        array(
+            'className'              => 'Classroom',
+            'joinTable'              => 'courses_classrooms',
+            'foreignKey'             => 'course_id',
+            'associationForeignKey'  => 'classroom_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
         )
     );
 }

@@ -23,7 +23,10 @@
             'style'=>'width:400px;height:100px;' ,
             'type' => 'textArea'));
 
-        echo $this->Form->hidden('school_id', array('value' => $school_id));	?>
+        echo $this->Form->hidden('school_id', array('value' => $school_id));
+        echo $this->Form->input('start_date');
+        echo $this->Form->input('end_date');
+    ?>
 
     <?php
     echo $this->Form->submit('Edit Course',array(

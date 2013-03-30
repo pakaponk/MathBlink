@@ -136,3 +136,116 @@ function removeProblem(latex,id){
     $('#status'+id).html("remove");
     $('#'+id).remove();
 }
+
+
+
+function get_problem_to_topic(inp_id){
+    //alert(inp_id);
+    var type ;
+    var id ;
+    if(inp_id =="TopicConceptId"){
+        type = 1 ;
+        id = $('#TopicConceptId').val() ;
+        $('#TopicTechniqueId').val("");
+        $('#problem').html("");
+    }else if(inp_id == "TopicTechniqueId"){
+        type = 0 ;
+        id = $('#TopicTechniqueId').val();
+        $('#TopicConceptId').val("");
+        $('#problem').html("");
+    }
+
+
+   // alert(id);
+    /*
+     TODO
+     URL in get_problem_to_topic should be replace
+     */
+    $.ajax({
+        url: '/mathblink/topic/get_problem_to_topic/'+type+'/'+id ,
+        cache: false,
+        type: 'GET',
+        dataType: 'HTML',
+        success: function (data) {
+            $('#problem').html(data);
+            $('html, body').animate({
+                scrollTop: $("#problem").offset().top - 50
+            },1000);
+        }
+    });
+
+
+}
+
+function remove_problem_topic(latex,id){
+    var index = getProblemIndex(id);
+    problemStatus[index] = "remove";
+    $('#problem'+id).remove();
+    $('#button'+id).html('<a class="btn" href="javascript:add_problem_to_topic(\''+latex+'\',\''+id+'\');">Add</a>');
+}
+
+function add_problem_to_topic(latex,id){
+    //alert(id);
+     var str = "<div id=\"problem"+id+"\" style=\"padding: 5px;font-size: 15px;width: 400px;margin-bottom: 5px\" class=\"hero-unit\">";
+     str += "<span style=\"font-weight: bold\" class=\"muted\">";
+     str += "#"+id ;
+     str += "</span>";
+     str += latex ;
+     str += "<a href=\"\" class=\"btn\">remove</a></div>";
+
+    var index = getProblemIndex(id) ;
+    if(index == -1){
+        problemId[problemCount] = id ;
+        problemStatus[problemCount] = "add";
+        problemCount++;
+    }else{
+        problemStatus[index] = "add";
+    }
+
+    $('#button'+id).html('<a class="btn" href="javascript:remove_problem_topic(\''+latex+'\','+id+')">Remove</a>');
+    $('#problem_queue').append(str);
+    MathJax.Hub.Typeset();
+}
+
+function changeStatus2(latex,id){
+    $('#button'+id).html('<a class="btn" href="javascript:remove_problem_topic(\''+latex+'\','+id+')">Remove</a>');
+    MathJax.Hub.Typeset();
+}
+
+function save_problem_to_topic(tid){
+    var id ='';
+    var status = '';
+
+    for(var i=0;i< problemCount;i++){
+        id +=problemId[i];
+        status +=problemStatus[i];
+        if(i != problemCount){
+            id +=';';
+            status +=';';
+        }
+    }
+    //alert("enter");
+
+
+
+    /*
+    TODO: Please change callUrl
+     */
+    var callUrl = '/mathblink/topic/save_problem_to_topic/'+tid+'/'+id +'/'+ status ;
+
+    $.ajax({
+        url: callUrl,
+        cache: false,
+        type: 'GET',
+        dataType: 'HTML',
+        success: function (data) {
+            //alert(data);
+            //$('#finish_add_problem').show();
+            //$('#debug_save').html(data);
+            /*$('#TopicDiv').html(data);
+             $('html, body').animate({
+             scrollTop: $("#TopicDiv").offset().top - 33
+             },1000);*/
+        }
+    });
+}

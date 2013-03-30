@@ -14,7 +14,7 @@
 
             <ul class="nav">
                 <li class="divider-vertical"></li>
-                <li <?php if($this->action == 'index') {?>class="active" <?php } ?>>
+                <li <?php if($this->action == 'index'&& $this->params['controller'] == 'student') {?>class="active" <?php } ?>>
                     <a href="<?php echo $this->Html->url(array(
                         'controller' => 'student',
                         'action' => 'index'
@@ -26,6 +26,13 @@
                         'controller' => 'student',
                         'action' => 'index'
                     ));?>"><strong>Assignment</strong></a>
+                </li>
+                <li class="divider-vertical"></li>
+                <li <?php if($this->action == 'index' && $this->params["controller"] =="lesson_plan") {?>class="active" <?php } ?>>
+                    <a href="<?php echo $this->Html->url(array(
+                        'controller' => 'lesson_plan',
+                        'action' => 'index'
+                    ));?>"><strong>Lesson Plan</strong></a>
                 </li>
                 <li class="divider-vertical"></li>
 
@@ -46,6 +53,6 @@
 
         </div>
     </div>
-</div><br/><br/>
+</div><br/>
 
 

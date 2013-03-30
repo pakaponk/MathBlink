@@ -14,5 +14,28 @@ class Teacher extends AppModel{
     public $belongsTo = array(
         'Classroom'
     );
+
+    public $hasAndBelongsToMany = array(
+        'Course' =>
+        array(
+            'className'              => 'Course',
+            'joinTable'              => 'teachers_courses',
+            'foreignKey'             => 'teacher_id',
+            'associationForeignKey'  => 'course_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        )
+    );
+
+    public function beforeFind(){
+
+    }
 }
 ?>

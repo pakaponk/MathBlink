@@ -10,8 +10,27 @@
 class Technique extends AppModel{
     public $primaryKey = 'technique_id';
     public $useTable = 'technique';
-    var $belongsTo = 'Unit';
+    public $displayField = 'technique_name';
+    public $belongsTo = 'Unit';
 
+    public $hasAndBelongsToMany = array(
+        'Problem' =>
+        array(
+            'className'              => 'Problem',
+            'joinTable'              => 'problems_tags',
+            'foreignKey'             => 'tag_id',
+            'associationForeignKey'  => 'problem_id',
+            'unique'                 => true,
+            'conditions'             => array('ProblemsTag.type' => 0),
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        )
+    );
 }
 
 ?>

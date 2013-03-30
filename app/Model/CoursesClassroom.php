@@ -5,7 +5,7 @@ class CoursesClassroom extends AppModel{
 	public $useTable = 'courses_classrooms';
 	public $primaryKey = 'course_classroom_id';
 
-	var $belongTo = array(
+	var $belongsTo = array(
 			'Course' => array(
 					'className' => 'Course',
 					'foreignKey' => 'course_id'

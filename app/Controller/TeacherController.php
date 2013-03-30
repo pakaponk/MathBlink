@@ -33,12 +33,21 @@ class TeacherController extends AppController{
     }
 
     public function index(){
+        //pr($this->Teacher->find('all'));
         //only view here
     }
 
     public function create_problemset(){
-        //pr($this->Course->find('list'));
-        $this->set('course_list',$this->Course->find('list'));
+        $teacher_arr = $this->Teacher->findById($this->Auth->user('id'));
+        $course_arr = $teacher_arr["Course"];
+        $num = count($course_arr);
+        $course_list_temp = array();
+        for($i=0;$i<$num;$i++){
+            $course_list_temp[$course_arr[$i]["course_id"]] = $course_arr[$i]["course_name"];
+        }
+        //pr($course_list_temp);
+
+        $this->set('course_list',$course_list_temp);
 
         if($this->request->is('post')){
             //pr($this->request->data);
@@ -56,26 +65,19 @@ class TeacherController extends AppController{
 
     public function problemset($id,$courseId = -1){
         $allProblem = $this->ProblemsetsProblem->findAllByProblemsetId($id);
-        //pr($allProblem);
         $problemset_arr =  $this->ProblemSet->findByProblemsetId($id) ;
-        //pr($problemset_arr["ProblemSet"]["course_id"]);
         $course_arr = $this->Course->findByCourseId($problemset_arr["ProblemSet"]["course_id"]) ;
         $lesson_list = $course_arr["Lesson"];
-        //pr($lesson_list);
         $num = count($lesson_list);
         $lesson_list_temp = array();
         for($i=0;$i<$num;$i++){
             $lesson_list_temp[$lesson_list[$i]["lesson_id"]] = $lesson_list[$i]["lesson_name"];
-            //$lesson_list[$lesson_list[$i]["lesson_id"]] = $lesson_list[$i]["lesson_name"];
-            //unset($lesson_list[$i]);
         }
 
         $this->set('added_problem',$allProblem);
         $this->set('problemset_arr',$problemset_arr);
         $this->set('course_arr',$course_arr);
         $this->set('lesson_list',$lesson_list_temp);
-        //$this->params["named"]["id"];
-        //$this->params["named"]["course_id"];
     }
 
     public function problemset_main(){
@@ -206,6 +208,75 @@ class TeacherController extends AppController{
         //debug($problem_level_id);
         //debug($problem_status);
 
+    }
+
+    public function lesson_plan(){
+        $teacher = $this->Teacher->findById($this->Auth->user('id'));
+        $course_lesson = $this->Course->find('all');
+        $courses = $teacher["Course"];
+        //pr($courses);
+        $course_id = array();
+        $course_lesson_data =array();
+        for($i=0;$i<count($courses);$i++){
+            $course_id[$i] = $courses[$i]["course_id"];
+        }
+        for($i=0;$i<count($course_lesson);$i++){
+            if( in_array($course_lesson[$i]["Course"]["course_id"],$course_id) )
+                $course_lesson_data[ $course_lesson[$i]["Course"]["course_id"] ] = $course_lesson[$i]["Lesson"];
+        }
+        //pr($course_lesson_data);
+        //pr($course_id);
+        //pr($this->Course->find('all'));
+        $this->set('data',$course_lesson_data);
+        $this->set('courses',$courses);
+    }
+
+    public function view_lesson_plan($course_id){
+        //$this->Lesson->recursive = 2 ;
+        $all_topic = $this->Topic->Lesson->find('all');
+        $data = $this->Topic->Lesson->Course->findByCourseId($course_id);
+
+        $all_topic_temp = array();
+        for($i=0;$i<count($all_topic);$i++){
+            $all_topic_temp[$all_topic[$i]["Lesson"]["lesson_id"] ] = $all_topic[$i]["Topic"];
+        }
+
+        for($i=0;$i<count($data["Lesson"]);$i++){
+            $data["Lesson"][$i]["Topic"] = $all_topic_temp[ $data["Lesson"][$i]["lesson_id"] ];
+        }
+        $this->set('data',$data);
+
+        //pr($data);
+    }
+
+    public function full_lesson_plan($course_id){
+        $all_topic = $this->Topic->Lesson->find('all');
+        $data = $this->Topic->Lesson->Course->findByCourseId($course_id);
+
+        $all_topic_temp = array();
+        for($i=0;$i<count($all_topic);$i++){
+            $all_topic_temp[$all_topic[$i]["Lesson"]["lesson_id"] ] = $all_topic[$i]["Topic"];
+        }
+
+        for($i=0;$i<count($data["Lesson"]);$i++){
+            $data["Lesson"][$i]["Topic"] = $all_topic_temp[ $data["Lesson"][$i]["lesson_id"] ];
+        }
+        $this->set('data',$data);
+    }
+
+    public function full_calendar_lesson_plan($course_id){
+        $all_topic = $this->Topic->Lesson->find('all');
+        $data = $this->Topic->Lesson->Course->findByCourseId($course_id);
+
+        $all_topic_temp = array();
+        for($i=0;$i<count($all_topic);$i++){
+            $all_topic_temp[$all_topic[$i]["Lesson"]["lesson_id"] ] = $all_topic[$i]["Topic"];
+        }
+
+        for($i=0;$i<count($data["Lesson"]);$i++){
+            $data["Lesson"][$i]["Topic"] = $all_topic_temp[ $data["Lesson"][$i]["lesson_id"] ];
+        }
+        $this->set('data',$data);
     }
 
     public function compare($psid)

@@ -36,4 +36,24 @@ class Classroom extends AppModel{
             'message' => 'Please fill in a classroom name'
         ),
     );
+
+    var $hasAndBelongsToMany = array(
+        'Course' =>
+        array(
+            'className'              => 'Course',
+            'joinTable'              => 'courses_classrooms',
+            'foreignKey'             => 'classroom_id',
+            'associationForeignKey'  => 'course_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        )
+    );
+
 }

@@ -24,11 +24,6 @@
 <div style="padding: 10px">
 	<table class="table table-bordered" cellpadding="10"
 		style="text-align: center; width: 800px; margin: 0px auto;">
-		<th>Topic ID</th>
-		<th>Topic Name</th>
-		<th>Topic Description</th>
-		<th>Creator ID</th>
-		<th>Modify</th>
 
 		<?php
 		foreach( $lesson[0]['Topic'] as $topic ){
@@ -36,17 +31,27 @@
 		$topic_name = $topic['topic_name'];
 		$topic_description = $topic['topic_description'];
 		$creator_id = $topic['creator_id'];
-
-		echo '<tr>';
-		echo '<td>'.$topic_id.'</td>';
-		echo '<td>'.$topic_name.'</td>';
-		echo '<td>'.$topic_description.'</td>';
-		echo '<td>'.$creator_id.'</td>';
-		echo '<td>'?>
-		<a class="btn btn-mini"
+            $start_date = $topic['start_date'];
+            $end_date = $topic['end_date'];
+?>
+		<tr>
+		<td width="80%">
+            <div style="float:left;width: 470px"><h4><?php echo $topic_name ;?></h4>
+            <?php echo $topic_description;?></div>
+            <span style=" width:100px;float:right;padding: 10px">
+                <?php if($start_date=="" || $end_date ==""){ ?>
+                <span class="label label-important">Please edit <br/>Start/End date</span>
+                <?php   }else{?>
+                <span class="label label-info">Start <?php echo $start_date ; ?></span>
+                <span class="label label-info">End <?php echo $end_date ;?></span>
+                <?php } ?>
+            </span>
+        </td>
+		<td>
+		<a class="btn"
 			href='<?php echo $this->html->url('/topic/edit/'.$course_id.'/'.$topic_id.'/'.$lesson[0]['Lesson']['lesson_id']);
 		?>'>Edit Topic</a>
-		<a class="btn btn-mini"
+		<a class="btn"
 			href='<?php echo $this->html->url('/topic/del/'.$topic_id);
 		?>'
 			onclick="return confirm('Are you sure?')">Delete Topic</a>

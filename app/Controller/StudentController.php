@@ -209,6 +209,10 @@ class StudentController extends AppController{
 
         $this->redirect('/student/showCheckAnswer/'.$student_id.'/'.$assignment_id);
     }
+
+    public function lesson_plan(){
+
+    }
 }
 
 ?>

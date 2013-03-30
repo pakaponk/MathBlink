@@ -8,11 +8,32 @@
  */
 
 class CourseController extends AppController{
-    public $uses = array('Course','CoursesLesson','Lesson','Classroom','AssignmentScore','User','ProblemSet','CoursesLesson','Assignment','Topic','Concept','Technique');
+    public $uses = array('Course','CoursesLesson','Lesson','Classroom','AssignmentScore','User'
+                    ,'ProblemSet','CoursesLesson','Assignment','Topic','Concept','Technique'
+                    ,'Teacher','TeachersCourse');
 
     public function index(){
-        $courses = $this->Course->find('all');
+        //$this->autoRender = false ;
+        if($this->Auth->user('role') == "teacher"){
+            $teacher = $this->Teacher->findById($this->Auth->user('id'));
+            $courses = $teacher["Course"];
+        }else if($this->Auth->user('role') =="school_admin"){
+            $arr = array();
+            $courses = $this->Course->find('all');
+            for($i=0;$i<count($courses);$i++){
+                $arr[$i] = $courses[$i]["Course"];
+            }
+            $courses = $arr;
+        }
         $this->set('courses',$courses);
+        if($this->Auth->user('role') == "teacher"){
+            $this->render('teacher_index');
+        }else{
+            $this->render('index');
+        }
+    }
+
+    public function beforeRender(){
     }
 
     public function add(){
@@ -25,6 +46,14 @@ class CourseController extends AppController{
             } else {
                 $this->Session->setFlash(__('The course could not be saved. Please, try again.'),'flash_notification');
             }
+
+            if($this->Auth->user('role') === 'teacher'){
+                $arr = array("teacher_course_id" =>""
+                             ,"teacher_id" => $this->Auth->user('id')
+                             ,"course_id" => $this->Course->id );
+                $this->TeachersCourse->save($arr);
+            }
+
             $this->redirect(array('action' => 'index'));
         }
     }
@@ -48,6 +77,7 @@ class CourseController extends AppController{
     }
 
     public function del($course_id){
+        $this->TeachersCourse->primaryKey = "teacher_course_id";
         $this->Course->delete($course_id,false);
         $this->CoursesLesson->deleteAll(array('CoursesLesson.course_id' => $course_id));
         $this->Session->setFlash(__('The course has been deleted'),'flash_complete');
@@ -57,14 +87,18 @@ class CourseController extends AppController{
 
     public function beforeFilter(){
         parent::beforeFilter();
-        if($this->Auth->user('role') === 'school_admin'){
-            $this->layout = 'school_admin';
-        }
     }
 
     public function isAuthorized($user) {
-        if (isset($user['role']) && $user['role'] === 'school_admin' ) {
-            return true;
+        if (isset($user['role'])) {
+            if($user['role'] == "school_admin"){
+                return true ;
+            }else if($user['role'] == "teacher"){
+                if($this->action =="add"){
+                    return false ;
+                }
+                return true ;
+            }
         }else{
             $this->Session->setFlash('You have no authoritative here','flash_notification');
         }

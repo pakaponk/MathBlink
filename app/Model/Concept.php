@@ -10,7 +10,27 @@
 class Concept extends AppModel{
     public $primaryKey = 'concept_id';
     public $useTable = 'concept';
-    var $belongsTo = 'Unit';
+    public $displayField = 'concept_name';
+    public $belongsTo = 'Unit';
+    public $hasAndBelongsToMany = array(
+        'Problem' =>
+        array(
+            'className'              => 'Problem',
+            'joinTable'              => 'problems_tags',
+            'foreignKey'             => 'tag_id',
+            'associationForeignKey'  => 'problem_id',
+            'unique'                 => true,
+            'conditions'             => array('ProblemsTag.type' => 1),
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
+        )
+    );
+
 }
 
 ?>
