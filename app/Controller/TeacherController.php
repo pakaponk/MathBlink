@@ -392,6 +392,83 @@ class TeacherController extends AppController{
             $this->set('result',true);
         }
     }
+    
+    public function view_class_rank($lesson_id){
+    	$teacher_id = $this->Auth->user('id');
+    	$lesson = $this->Lesson->find('first',array(
+    			'conditions' => array('Lesson.lesson_id' => $lesson_id),
+    			'recursive' => -1));
+    	$lesson_name = $lesson['Lesson']['lesson_name'];
+    	 
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result2 = $db->fetchAll(
+    			'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name 
+					FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+							(Assignment.id = AssignmentScore.assignment_id 
+        					AND User.id = AssignmentScore.student_id)
+					WHERE User.role = "student" 
+					AND Assignment.problemset_id IN (SELECT Problemset.problemset_id
+														FROM problemset AS Problemset INNER JOIN 
+                                							courses_lessons AS CoursesLesson 
+                                        					ON (Problemset.course_id = CoursesLesson.course_id)
+                                						WHERE CoursesLesson.lesson_id = ?)
+					AND User.classroom_id IN (SELECT TeachersClassroom.classroom_id 
+    											FROM teachers_classrooms AS TeachersClassroom 
+    											WHERE TeachersClassroom.teacher_id = ?)
+					GROUP BY User.id
+                    ORDER BY total_score DESC , User.id ASC 
+                    LIMIT 10',
+    			array($lesson_id,$teacher_id)
+    	);
+    	 
+    	$this->set('lesson_name',$lesson_name);
+    	$this->set('top10List',$result2);    	 
+    	 
+    	//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
+    	//     	pr($result2);
+       
+    }
+    
+    public function view_course_rank($lesson_id){
+    	$teacher_id = $this->Auth->user('id');
+    	
+    	$lesson = $this->Lesson->find('first',array(
+    			'conditions' => array('Lesson.lesson_id' => $lesson_id),
+    			'recursive' => -1));
+    	$lesson_name = $lesson['Lesson']['lesson_name'];
+    
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result2 = $db->fetchAll(
+    			'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name 
+					FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+							(Assignment.id = AssignmentScore.assignment_id 
+        					AND User.id = AssignmentScore.student_id)
+					WHERE User.role = "student" 
+					AND Assignment.problemset_id IN (SELECT Problemset.problemset_id
+														FROM problemset AS Problemset INNER JOIN 
+                                							courses_lessons AS CoursesLesson 
+                                        					ON (Problemset.course_id = CoursesLesson.course_id)
+                                						WHERE CoursesLesson.lesson_id = ?)
+					AND User.classroom_id IN (SELECT CoursesClassroom.classroom_id
+			  									FROM courses_classrooms AS CoursesClassroom , 
+                          							courses_classrooms AS CoursesClassroom2
+                          						WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
+                          						AND CoursesClassroom2.classroom_id IN (SELECT TeachersClassroom.classroom_id 
+    																					FROM teachers_classrooms AS TeachersClassroom 
+    																					WHERE TeachersClassroom.teacher_id = ?))
+					GROUP BY User.id
+                    ORDER BY total_score DESC , User.id ASC 
+                    LIMIT 10',
+    			array($lesson_id,$teacher_id)
+    	);
+    
+    	$this->set('lesson_name',$lesson_name);
+    	$this->set('top10List',$result2);
+    
+    	//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
+    	//     	pr($result2);
+        
+    }
 
 }
 
