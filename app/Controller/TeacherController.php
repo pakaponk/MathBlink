@@ -403,9 +403,10 @@ class TeacherController extends AppController{
     	$teacher_id = $this->Auth->user('id');
     
     	$db = $this->AssignmentScore->getDataSource();
-    	$result = $db->fetchAll('SELECT TeachersClassroom.classroom_id 
-    			FROM teachers_classrooms AS TeachersClassroom 
-    			WHERE TeachersClassroom.teacher_id = ?
+    	$result = $db->fetchAll('SELECT TeachersClassroom.classroom_id , Classroom.grade , Classroom.room
+    			FROM teachers_classrooms AS TeachersClassroom , classrooms AS Classroom
+    			WHERE Classroom.id = TeachersClassroom.classroom_id 
+    			AND TeachersClassroom.teacher_id = ?
     			',
     			array($teacher_id));
     	
@@ -427,6 +428,9 @@ class TeacherController extends AppController{
     		$return[$i++] = $result2;
     	}
     	
+    	$return['Classroom'] = $result;
+//     	echo '<br/><br/><br/><br/><br/><br/>';
+//     	pr($return);
     	return $return;
     
     }
