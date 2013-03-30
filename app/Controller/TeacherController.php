@@ -398,6 +398,38 @@ class TeacherController extends AppController{
     	//     	pr($result2);
         
     }
+    
+    private function getTopClassList(){
+    	$teacher_id = $this->Auth->user('id');
+    
+    	$db = $this->AssignmentScore->getDataSource();
+    	$result = $db->fetchAll('SELECT TeachersClassroom.classroom_id 
+    			FROM teachers_classrooms AS TeachersClassroom 
+    			WHERE TeachersClassroom.teacher_id = ?
+    			',
+    			array($teacher_id));
+    	
+    	$i=0;
+    	foreach ($result AS $classroom){
+    		$classroom_id = $classroom['TeachersClassroom']['classroom_id'];
+    		$result2 = $db->fetchAll(
+    				'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id  
+                        FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+							(Assignment.id = AssignmentScore.assignment_id 
+        					AND User.id = AssignmentScore.student_id)
+						WHERE User.role = "student" 
+    					AND User.classroom_id = ? 
+    					GROUP BY User.id 
+                        ORDER BY total_score DESC , User.id ASC 
+                        LIMIT 3',
+    				array($classroom_id)
+    		);
+    		$return[$i++] = $result2;
+    	}
+    	
+    	return $return;
+    
+    }
 
 }
 

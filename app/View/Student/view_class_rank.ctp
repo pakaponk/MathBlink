@@ -13,14 +13,14 @@
 			<?php 
 			$length = count($top10List);
 			for($i=0;$i<$length;$i++){
-				if($top10List[$i]['Users']['id'] == $student_id){
+				if($top10List[$i]['User']['student_id'] == $student_id){
 					echo '<tr class="alert-success">';
 					echo '<td style="width:10%;text-align:center;">';
 					echo $i+1;
 					echo '</td>';
 				
 					echo '<td>';
-					echo $top10List[$i]['Users']['title'].$top10List[$i]['Users']['first_name'].' '.$top10List[$i]['Users']['last_name'];
+					echo $top10List[$i]['User']['title'].$top10List[$i]['User']['first_name'].' '.$top10List[$i]['User']['last_name'];
 					echo '<span class="label label-success pull-right">Your Rank</span>';
 				
 					echo '</td>';
@@ -34,7 +34,7 @@
 					echo '</td>';
 				
 					echo '<td>';
-					echo $top10List[$i]['Users']['title'].$top10List[$i]['Users']['first_name'].' '.$top10List[$i]['Users']['last_name'];
+					echo $top10List[$i]['User']['title'].$top10List[$i]['User']['first_name'].' '.$top10List[$i]['User']['last_name'];
 	
 					echo '</td>';
 				
