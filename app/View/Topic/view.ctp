@@ -37,6 +37,7 @@
     ?>
     <br/>
     <h4>Duration : </h4>
+    <?php if($auth == "teacher") {?>
     <?php
     echo $this->Form->create('Topic');
     echo $this->Form->input('start_date',array('dateFormat' => 'DMY','default'=>$data["Topic"]["start_date"]));
@@ -44,7 +45,16 @@
     echo $this->Form->hidden('topic_id', array('value' => $data["Topic"]["topic_id"]));
     echo $this->Form->submit('Edit Date',array('class' => 'btn btn-primary'));
     ?>
+    <?php }else{ ?>
+    <span style="font-size: 15px">
+    <?php echo $data["Topic"]["start_date"] ; ?> to <?php echo $data["Topic"]["end_date"] ;?>
+    </span>
+    <?php } ?>
     <div style="border-bottom: 1px solid #efefef">&nbsp;</div>
+
+    <?php
+        if($auth == "teacher"){
+    ?>
     <div style="float: left;width: 370px">
         <h4>Add Problem to Topic : </h4>
         <?php
@@ -99,4 +109,5 @@
         <?php endforeach ; ?>
     </div>
     <div style="clear: both"></div>
+    <?php } ?>
 </div>

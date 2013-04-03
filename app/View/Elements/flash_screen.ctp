@@ -11,3 +11,6 @@
         ));?>">here</a></h3>
     </div>
 </div>
+
+
+<div class="fullScreen" id="bg" style="display: none" onclick="close_bg()"></div>

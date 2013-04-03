@@ -31,6 +31,22 @@ class Teacher extends AppModel{
             'finderQuery'            => '',
             'deleteQuery'            => '',
             'insertQuery'            => ''
+        ),
+        'Classroom' =>
+        array(
+            'className'              => 'Classroom',
+            'joinTable'              => 'teachers_classrooms',
+            'foreignKey'             => 'teacher_id',
+            'associationForeignKey'  => 'classroom_id',
+            'unique'                 => true,
+            'conditions'             => '',
+            'fields'                 => '',
+            'order'                  => '',
+            'limit'                  => '',
+            'offset'                 => '',
+            'finderQuery'            => '',
+            'deleteQuery'            => '',
+            'insertQuery'            => ''
         )
     );
 

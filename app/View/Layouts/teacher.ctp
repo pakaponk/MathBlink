@@ -26,7 +26,7 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
         <?php echo $cakeDescription ?>:
         <?php echo $title_for_layout; ?>
     </title>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>-->
     <!--<script type='text/javascript' src='//code.jquery.com/jquery-1.9.1.js'></script>-->
     <!--<script type='text/javascript' src="https://raw.github.com/bigspotteddog/ScrollToFixed/master/jquery-scrolltofixed.js"></script>-->
 
@@ -42,6 +42,8 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
     echo $this->Javascript->link('jquery.jslatex');
     echo $this->Javascript->link('zebra_datepicker');
     echo $this->Javascript->link('jquery-scrolltofixed');
+    //echo $this->Javascript->link('jquery.min-1.3.2');
+    echo $this->Javascript->link('MathJax.js?config=default');
 
     echo $this->Html->css('fullcalendar.css');
     echo $this->Html->css('fullcalendar.print.css');
@@ -52,9 +54,9 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
     ?>
    <!-- <script type="text/javascript" src="http://localhost:8888/mathblink/app/webroot/js/MathJax.js?config=TeX-AMS_HTML-full"></script>-->
 
-    <script type="text/javascript"
+    <!--<script type="text/javascript"
             src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-    </script>
+    </script>-->
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({tex2jax: {inlineMath: [['$$','$$'], ['\\(','\\)']]}});
         <!--MathJax.Hub.Typeset();-->

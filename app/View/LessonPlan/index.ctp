@@ -77,7 +77,29 @@ Lesson plan
 
 <div style="padding: 10px;margin-left: 50px;margin-right: 50px">
 
+    <div style="border-bottom:1px solid #efefef;padding: 10px;margin-bottom: 10px">
+        <div><h3>Select Course to view</h3></div>
+        <?php
+        foreach( $courses as $course ){
+            /*$course_id = $course['Course']['course_id'];
+            $course_name = $course['Course']['course_name'];
+            $course_description = $course['Course']['course_description'];
+            $school_id = $course['Course']['school_id'];*/
+
+            $course_id = $course['course_id'];
+            $course_name = $course['course_name'];
+            $course_description = $course['course_description'];
+            $school_id = $course['school_id'];
+            ?>
+            <label class="checkbox">
+                <input type="checkbox"> <?php echo $course_name;  ?>
+            </label>
+            <?php } ?>
+    </div>
+
+
     <div id='calendar' style="width: 800px"></div><br/>
+
 
     <table class="table table-bordered table-hover" cellpadding="10"
            style="text-align: center; width: 800px; margin: 0px auto;">
@@ -111,4 +133,6 @@ Lesson plan
         ?>
         </tbody>
     </table>
+
+
 </div>

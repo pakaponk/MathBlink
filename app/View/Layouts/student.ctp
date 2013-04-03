@@ -50,6 +50,9 @@ $cakeDescription = __d('cake_dev', 'Mathblink.com');
     echo $this->Javascript->link('jquery.jslatex');
     echo $this->Javascript->link('zebra_datepicker');
     echo $this->Javascript->link('jquery-scrolltofixed');
+    //echo $this->Javascript->link('MathJax.js?config=default');
+
+    echo $this->Javascript->link('jquery.min-1.3.2');
 
     echo $this->Html->css('fullcalendar.css');
     echo $this->Html->css('fullcalendar.print.css');

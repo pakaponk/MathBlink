@@ -10,6 +10,10 @@ class HomeController extends AppController {
         parent::beforeFilter();
         $this->Auth->allow('index','about_us','team');
 
+        if(!$this->Auth->user()){
+            $this->redirect(array('controller'=>'users','action'=>'login'));
+        }
+
         //if($this->action !== 'index'){
             if($this->Auth->user('role') === 'student'){
                 $this->redirect(array(

@@ -216,12 +216,6 @@ class StudentController extends AppController{
 
         $this->redirect('/student/showCheckAnswer/'.$student_id.'/'.$assignment_id);
     }
-<<<<<<< HEAD
-
-    public function lesson_plan(){
-
-    }
-=======
     
     public function view_class_rank($lesson_id){
     	$student_id = $this->Auth->user('id');
@@ -469,7 +463,6 @@ class StudentController extends AppController{
     	// echo '<br/><br/><br/><br/><br/><br/><br/>';
     	// pr($result);
     // }
->>>>>>> branch-ice
 }
 
 ?>

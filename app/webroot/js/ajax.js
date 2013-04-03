@@ -249,3 +249,35 @@ function save_problem_to_topic(tid){
         }
     });
 }
+
+
+function close_bg(){
+    $('#bg').hide();
+    $('#selectCourseDiv').hide();
+}
+
+function get_class(id){
+    /*
+    * TODO:Change url here !!
+    * */
+    var callUrl = '/mathblink/teacher/get_class/'+id ;
+    $('.btn').removeClass(" btn-primary");
+    $('#bt'+id).addClass(" btn-primary");
+    $.ajax({
+        url: callUrl,
+        cache: false,
+        type: 'GET',
+        dataType: 'HTML',
+        success: function (data) {
+            //alert(data);
+            $('#selectClassDiv').hide();
+            $('#selectClassDiv').fadeIn("slow");
+            $('#selectClassDiv').html(data);
+            //$('#debug_save').html(data);
+            /*$('#TopicDiv').html(data);
+             $('html, body').animate({
+             scrollTop: $("#TopicDiv").offset().top - 33
+             },1000);*/
+        }
+    });
+}

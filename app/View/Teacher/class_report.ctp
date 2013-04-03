@@ -7,21 +7,63 @@
     )) ;?> ">Create new</a>
     </span>-->
 </h3>
+
+
+
 <div style="padding: 10px;width: 800px;margin: 0px auto;">
-<a class="btn" href="<?php echo $this->Html->Url(array('controller'=>'teacher','action'=>'class_score'))?>">
-    Class Highest/Lowest Score
-</a>
-<a class="btn" href="<?php echo $this->Html->Url(array('controller'=>'teacher','action'=>'course_score'))?>">
-    Course Highest/Lowest Score
-</a>
 
-<div>
-    <h4>Class Performance</h4>
+    <div style="width: 390px;padding: 0px;float: left">
+<?php
+    $flag = 0 ;
+?>
+<?php foreach($teacher_class as $classroom) : ?>
+    <?php  if($flag >= 7) {?>
+     <table class="table table-bordered table-hover">
+    <tr><td>
+    <h4 style="width: 795px;float: left">Class <?php echo $classroom["full_classroom"]; ?></h4>
+        <span style="float: right"><a href="" class="btn">View Class</a></span>
+        <?php $j = 0 ;?>
+        <?php foreach($data[$classroom["id"]] as $class) :?>
+        <tr><td>
+        <div style="font-weight: bold">
+            <?php echo $problemset_name[$classroom["id"]][$j];?>
+            <?php
+            $percent = ($class["assignment_complete"]/$class["total_assignment"])*100;
+        ?></div>
+<div style="text-align: right;font-weight: bold;margin-top: -20px" class="muted" >
+    <?php echo $class["assignment_complete"] ; ?> / <?php echo $class["total_assignment"] ; ?>
 </div>
+        <div class="progress progress-success progress-striped" >
+            <div class="bar" style="width: <?php echo $percent ; ?>%;"></div>
+        </div>
+         <div style="margin-top: -17px;">
+            <!-- Highest Score : <?php //echo $highest_score[$classroom["id"]][$j++][0]['AssignmentScore']['score']; ?>
+             Lowest Score : <?php ?>
+             <a href="" class="btn">View</a>-->
+         </div>
+        </td></tr>
+        <?php endforeach ?>
+    </td></tr>
+    <?php } $flag++; ?>
+    </table>
+<?php endforeach ?>
+    </div>
 
-<div>
-    <h4>Course Performance</h4>
-</div>
+
+  <!--  <div style="width: 390px;padding: 0px;float: right">
+        Course
+        <table class="table table-bordered">
+            <?php foreach($teacher_course as $class) : ?>
+                <tr><td>
+                    <?php
+                    echo $class["course_name"];
+                    ?>
+                </td></tr>
+            <?php endforeach ?>
+        </table>
+    </div>-->
+
+<div style="clear: both"></div>
 
 
 </div>

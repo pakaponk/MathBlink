@@ -10,6 +10,23 @@
 
 ?>
 
+<script>
+    $(document).ready(function () {
+        //alert("The DOM is now loaded and can be manipulated.");
+        //$('#selectCourseDiv').show();
+        //$('#bg').show();
+    });
+</script>
+
+<div style="display: none;background-color: #FAFAFA;padding: 20px;position: relative;
+z-index: 10010;width:600px;margin: 0px auto;" id="selectCourseDiv">
+    <h4>Please Select Course/Class to View</h4>
+    <?php
+        echo $this->Form->input('course_id',array('style'=>array('width'=>'500')));
+    ?>
+
+</div>
+
 <h3 style="padding: 10px;border-bottom: 1px solid #e5e5e5;margin-left: 50px;margin-right: 50px">
     Problem set
     <span style="float: right">
@@ -68,3 +85,6 @@
 </div>
 
     <?php } ?>
+
+
+

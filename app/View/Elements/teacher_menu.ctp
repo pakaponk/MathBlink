@@ -41,6 +41,14 @@
                         'action' => 'index'
                     ));?>"><strong>Lesson Plan</strong></a>
                 </li>
+                <li class="divider-vertical"></li>
+                <li <?php if($this->action == 'index' && $this->params["controller"] == "leader_board") {?>class="active" <?php } ?>>
+                    <a href="<?php echo $this->Html->url(array(
+                        'controller' => 'leader_board',
+                        'action' => 'index'
+                    ));?>"><strong>Leader Board</strong></a>
+                </li>
+                <li class="divider-vertical"></li>
 
             </ul>
 

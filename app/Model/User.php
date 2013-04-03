@@ -21,11 +21,12 @@ class User extends AppModel{
         'Classroom'
     );
 
-   /* public $hasMany = array(
+   public $hasMany = array(
         'AssignmentScore' => array(
             'className' => 'AssignmentScore',
-            'dependent' => true
-        ));*/
+            'dependent' => true,
+            'foreignKey' => 'student_id'
+        ));
 
     public $validate = array(
         'username' => array(

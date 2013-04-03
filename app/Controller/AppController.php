@@ -45,12 +45,10 @@ class AppController extends Controller {
             'userModel'	=> 'User'
         )
     );
-    //var $helpers = array('Time');
 
     public $helpers = array('Javascript', 'Ajax','Js' => array('Jquery'),'Time');
 
     public $layout = 'main';
-
 
     public function beforeFilter(){
         parent::beforeFilter();

@@ -210,6 +210,35 @@ class ProblemSetController extends AppController {
         $this->set('room',$room);
     }
 
+    public function get_class_highest_score($classroom_id,$problemset_id){
+        $assignment = $this->Assignment->findByClassroomIdAndProblemsetId($classroom_id,$problemset_id);
+        $grade = $assignment['Classroom']['grade'];
+        $room = $assignment['Classroom']['room'];
+        $assignment_id = $assignment['Assignment']['id'];
+        $problemset_name = $assignment['ProblemSet']['problemset_name'];
+
+        $result = $this->User->AssignmentScore->find('all', array(
+            'conditions' => array('AssignmentScore.student_id '.
+                'IN'.
+                ' (SELECT Student.id FROM user AS Student WHERE Student.classroom_id='.$classroom_id.
+                ' AND Student.role="student")',
+                'AssignmentScore.assignment_id' => $assignment_id),
+            'fields' => array('AssignmentScore.score',
+                'AssignmentScore.student_id',
+                'User.*'),
+            'recursive' => 1,
+            'limit' => 3,
+            'order' => array('AssignmentScore.score' => 'desc'),
+        ));
+
+        return $result;
+            //$this->set('result',$result);
+        //$this->set('problemset_name',$problemset_name);
+        //$this->set('grade',$grade);
+        //$this->set('room',$room);
+    }
+
+
     public function class_lowest_score($classroom_id,$problemset_id){
         $assignment = $this->Assignment->findByClassroomIdAndProblemsetId($classroom_id,$problemset_id);
         $grade = $assignment['Classroom']['grade'];
@@ -359,6 +388,40 @@ class ProblemSetController extends AppController {
     	$this->set('classroom_name',$classroom_name);
     	 
     }
+
+    public function get_class_progress($classroom_id,$problemset_id){
+        $problemset = $this->ProblemSet->findByProblemsetId($problemset_id);
+        $problemset_name = $problemset['ProblemSet']['problemset_name'];
+        $classroom = $this->Classroom->findById($classroom_id);
+        $classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll(
+            'SELECT count(AssignmentScore.assignment_score_id) AS assignment_complete
+				FROM assignment_score AS AssignmentScore , assignment AS Assignment , user AS User
+				WHERE AssignmentScore.assignment_id = Assignment.id
+    			AND User.id = AssignmentScore.student_id
+    			AND User.classroom_id = ?
+				AND Assignment.problemset_id = ?',
+            array($classroom_id,$problemset_id)
+        );
+        $result2 = $db->fetchAll(
+            'SELECT count(*) AS total_assignment
+				FROM user AS User , assignment AS Assignment
+    			WHERE User.classroom_id = Assignment.classroom_id
+    			AND Assignment.classroom_id = ?
+    			AND Assignment.problemset_id = ?',
+            array($classroom_id,$problemset_id)
+        );
+
+        return array($result,$result2);
+
+        //$this->set('result',$result);
+        //$this->set('result2',$result2);
+        //$this->set('problemset_name',$problemset_name);
+        //$this->set('classroom_name',$classroom_name);
+    }
+
 }
 
 ?>
