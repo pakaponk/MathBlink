@@ -359,3 +359,26 @@ input { font-size: 18px; }
     z-index: 10000;
     text-align: center;
 }
+
+.problemset_block{
+    background-color:#FFFFFF;
+    margin-bottom:5px;
+    padding: 2px;
+    border: 1px solid #efefef;
+    border-bottom: 1px solid #efefef;
+    list-style-type: none;
+    margin-left: -20px;
+}
+
+li { cursor: hand; cursor: pointer; }
+
+#sortable1 li, #sortable2 li, #sortable3 li { margin: 5px; padding: 5px; font-size: 1.2em; width: 120px; }
+.empty_problemset{
+    margin-bottom:5px;
+    padding: 2px;
+    color: #b3b3b3;
+    font-size: 18px;
+    font-weight: bold;
+    list-style-type: none;
+    margin-left: -20px;
+}

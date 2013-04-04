@@ -9,7 +9,7 @@
 ?>
 
 <h3>
-    Select Class to View
+    Select a Class to Display
 </h3>
 <?php
 if($class_list == array()){ ?>

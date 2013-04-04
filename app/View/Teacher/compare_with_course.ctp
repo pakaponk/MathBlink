@@ -47,8 +47,18 @@
                 Classroom : Average Score
             </th>
             <tr>
-                <td> <?php echo sprintf("%.2f",$course_score) . " ( " . $course_score_num . " students sent the assignment from " . $course_num . " in classroom )" ; ?></td>
-                <td> <?php echo sprintf("%.2f",$score) . " ( " . $score_num . " students sent the assignment from " . $num . " in classroom )" ; ?></td>
+                <td> <?php
+                    if ($course_end == true)
+                        echo sprintf("%.2f",$course_score) . " / " . $question_num . " ( " . $course_score_num . " students sent the assignment from " . $course_num . " in course )" ;
+                    else
+                        echo sprintf("%.2f",$course_score) . " / " . $question_num . " ( From " . $course_score_num . " students sent the assignment )" ;
+                ?></td>
+                <td> <?php
+                    if ($assignment['Assignment']['status'] == 'ended')
+                        echo sprintf("%.2f",$score) . " / " . $question_num . " ( " . $score_num . " students sent the assignment from " . $num . " in classroom )" ;
+                    else
+                        echo sprintf("%.2f",$score) . " / " . $question_num . " ( From " . $score_num . " students sent the assignment )" ;
+                    ?></td>
             </tr>
             <?php endif ?>
         </table>

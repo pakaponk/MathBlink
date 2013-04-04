@@ -1,6 +1,12 @@
+<ul class="breadcrumb"
+	style="background-color: #FFF; padding: 10px; margin-left: 50px; padding-top: 20px; margin-right: 50px; margin-bottom: -10px;">
+	<li><a href="<?php echo $this->Html->url('/student/leaderboard'); ?>">Leaderboard</a> <span class="divider">/</span></li>
+	<li class="active">Course Ranking by Lesson <?php echo $lesson_name; ?></li>
+</ul>
 <h3
-	style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
-	Course Ranking of Lesson <?php echo $lesson_name; ?></h3>
+        style="padding: 10px; padding-top: 0px; margin-right: 50px; margin-left: 50px; border-bottom: 1px solid #e5e5e5">
+    Course Ranking of Lesson <?php echo $lesson_name; ?>
+</h3>
 
 <div style="padding: 10px">
 	<table class="table table-bordered" cellpadding="10"

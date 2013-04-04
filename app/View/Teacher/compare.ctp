@@ -54,8 +54,26 @@
         Classroom 2 : Average Score
     </th>
     <tr>
-        <td> <?php echo sprintf("%.2f",$score1['Average']) . " ( " . $score1_num . " students sent the assignment from " . $num1 . " in classroom )" ; ?></td>
-        <td> <?php echo sprintf("%.2f",$score2['Average']) . " ( " . $score2_num . " students sent the assignment from " . $num2 . " in classroom )" ; ?></td>
+        <td> <?php
+                if ($assignment1['Assignment']['status'] != "ended")
+                {
+                    echo sprintf("%.2f",$score1['Average']) . " / " . $question_num . " ( From " . $score1_num . " students sent the assignment )" ;
+                }
+                else
+                {
+                    echo sprintf("%.2f",$score1['Average']) . " / " . $question_num . " ( " . $score1_num . " students sent the assignment from " . $num1 . " in classroom )" ;
+                }
+            ?></td>
+        <td> <?php
+                if ($assignment2['Assignment']['status'] != "ended")
+                {
+                    echo sprintf("%.2f",$score2['Average']) . " / " . $question_num . " ( From " . $score2_num . " students sent the assignment )" ;
+                }
+                else
+                {
+                    echo sprintf("%.2f",$score2['Average']) . " / " . $question_num . " ( " . $score2_num . " students sent the assignment from " . $num2 . " in classroom )" ;
+                }
+            ?></td>
     </tr>
 <?php endif ?>
 </table>

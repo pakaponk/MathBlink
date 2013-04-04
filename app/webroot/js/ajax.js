@@ -252,8 +252,8 @@ function save_problem_to_topic(tid){
 
 
 function close_bg(){
-    $('#bg').hide();
-    $('#selectCourseDiv').hide();
+    //$('#bg').hide();
+    //$('#selectCourseDiv').hide();
 }
 
 function get_class(id){
@@ -280,4 +280,15 @@ function get_class(id){
              },1000);*/
         }
     });
+}
+
+
+function close_select_course_class(){
+    $('#bg').hide();
+    $('#selectCourseDiv').hide();
+}
+
+function open_select_course_class(){
+    $("#selectCourseDiv").fadeIn("slow");
+    $('#bg').fadeIn("slow");
 }

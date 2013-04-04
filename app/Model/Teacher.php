@@ -9,7 +9,12 @@
 class Teacher extends AppModel{
     public $useTable = 'user';
     public $hasMany = array(
-        'ProblemSet'
+        'ProblemSet',
+        'TeacherCourse' => array(
+            'className' => 'TeacherCourse',
+            'foreignKey' => 'teacher_id',
+            'dependent'=> true,
+        )
     );
     public $belongsTo = array(
         'Classroom'
@@ -50,8 +55,5 @@ class Teacher extends AppModel{
         )
     );
 
-    public function beforeFind(){
-
-    }
 }
 ?>
