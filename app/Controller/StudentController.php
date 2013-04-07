@@ -15,7 +15,86 @@ App::uses('CakeTime', 'Utility');
 class StudentController extends AppController{
 
     public $uses = array('User','Assignment','ProblemsetsProblem','ProblemDataSet'
-        ,'StudentsAssignment','AssignmentScore','Classroom','Lesson','CoursesClassroom');
+        ,'StudentsAssignment','AssignmentScore','Classroom','Lesson','CoursesClassroom','Course');
+
+    private function getTopClassList($all){
+        $student_id = $this->Auth->user('id');
+        $student = $this->User->find('first',array(
+            'conditions' => array('User.id' => $student_id),
+            'recursive' => -1));
+        $classroom_id = $student['User']['classroom_id'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll('SET @rank=0');
+        $result = $db->fetchAll(
+            'SELECT *
+				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+				FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
+				FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+				(Assignment.id = AssignmentScore.assignment_id
+				AND User.id = AssignmentScore.student_id)
+				WHERE User.role = "student"
+				AND User.classroom_id = ?
+				GROUP BY User.id
+				ORDER BY total_score DESC , User.id ASC
+		) AS A ) AS Student
+				WHERE Student.student_id = ?',
+            array($classroom_id,$student_id)
+        );
+
+        if (!$all)
+        {
+            $result2 = $db->fetchAll(
+                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
+					FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+					(Assignment.id = AssignmentScore.assignment_id
+					AND User.id = AssignmentScore.student_id)
+					WHERE User.role = "student"
+					AND User.classroom_id = ?
+					GROUP BY User.id
+					ORDER BY total_score DESC , User.id ASC
+					LIMIT 3',
+                array($classroom_id)
+            );
+        }
+        else
+        {
+            $result2 = $db->fetchAll(
+                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
+					FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+					(Assignment.id = AssignmentScore.assignment_id
+					AND User.id = AssignmentScore.student_id)
+					WHERE User.role = "student"
+					AND User.classroom_id = ?
+					GROUP BY User.id
+					ORDER BY total_score DESC , User.id ASC',
+                array($classroom_id)
+            );
+        }
+
+        $result3 = $db->fetchAll('
+				SELECT COUNT(Assignment.id) AS total_assignment
+				FROM assignment AS Assignment
+				WHERE Assignment.classroom_id = ?
+				AND Assignment.release_date <= NOW()',
+            array($classroom_id)
+        );
+
+        if(!empty($result) && ($result3[0][0]['total_assignment']==$result[0]['Student']['total_do_assignment'])){
+            $complete_assignment = true;
+        }else{
+            $complete_assignment = false;
+        }
+
+        if(!empty($result) && $result[0]['Student']['rank'] <= 3)
+            $beTop3 = true;
+        else
+            $beTop3 = false;
+
+        $return = array('Student' => $result[0]['Student'],'List' => $result2,'total_assignment' => $result3[0][0]['total_assignment'] ,'complete_assignment' => $complete_assignment,'be_top3' => $beTop3);
+
+        return $return;
+    }
 
     public function index(){
         //$assignments = $this->Assignment->findAllByClassroomId($this->Auth->user('classroom_id'));
@@ -114,12 +193,15 @@ class StudentController extends AppController{
                 'status' => 'released'
             ),
             'recursive' => 2,
+            'order' => "Assignment.end_date ASC"
         ));
         for ($i = 0 ; $i < count($released) ;$i++)
         {
-            if ($this->AssignmentScore->findByAssignmentIdAndStudentId($released[$i]['Assignment']['id'],$this->Auth->user('id')) != null)
+            $assignment_score = $this->AssignmentScore->findByAssignmentIdAndStudentId($released[$i]['Assignment']['id'],$this->Auth->user('id'));
+            if ($assignment_score != null)
             {
                 $released[$i]['Done'] = 1;
+                $released[$i]['Score'] = $assignment_score['AssignmentScore'];
             }
             else
             {
@@ -171,6 +253,7 @@ class StudentController extends AppController{
         $assignment = $this->Assignment->findById($asid);
         $this->set('assignment',$assignment);
     }
+
     public function start($str)
     {
         $asid = substr($str,11);
@@ -201,19 +284,89 @@ class StudentController extends AppController{
                     'problem_level_dataset_id' => $problem['DataSet'][$answers['Problem'. $i .' hidden']]['ProblemDataSet']['problem_level_dataset_id']
                 ));
                 $std_ans = "";
-                for ($j = 1; $j <= $problem['ProblemLevel']['input_num'];$j++)
+                switch($problem['Problem']['problem_type'])
                 {
-                    if ($j > 1)
-                    {
-                        $std_ans .= ',';
-                    }
-                    $std_ans .= trim($answers['Problem'. $i . ' ' . $j]);
+                    case "FIB" :
+                        for ($j = 1; $j <= $problem['ProblemLevel']['input_num'];$j++)
+                        {
+                            if ($j > 1)
+                            {
+                                $std_ans .= ';';
+                            }
+                            $std_ans .= trim($answers['Problem'. $i . ' ' . $j]);
+                        }
+                        break;
+                    case "MPC" :
+                        $std_ans = $answers['Problem'. $i];
                 }
                 $this->StudentsAssignment->set('student_answer',$std_ans);
                 $this->StudentsAssignment->save();
                 $i++;
             }
-            $this->redirect('setAnswerStatus/' . $this->Auth->user('id') . '/' . $asid);
+
+            //Set Answer Status Function
+            $studentAssignmentList = $this->StudentsAssignment->findAllByStudentIdAndAssignmentId($this->Auth->user('id'),$asid);
+            $totalScore = 0;
+            $totalQuestion = 0;
+            $totalLevel = 0;
+            foreach($studentAssignmentList as $studentAssignment){
+                $studentAssignmentId = $studentAssignment['StudentsAssignment']['student_assignment_id'];
+                $output_num = $studentAssignment['ProblemLevel']['output_num'];
+                $input_num = $studentAssignment['ProblemLevel']['input_num'];
+                $choice_num = $studentAssignment['ProblemLevel']['choice_num'];
+                $p_level = $studentAssignment['ProblemLevel']['level_id'];
+                $dataset = $studentAssignment['ProblemDataSet']['dataset'];
+                $student_answer = $studentAssignment['StudentsAssignment']['student_answer'];
+                $dataset = explode(";", $dataset);
+                $answer = explode(";", $student_answer);
+                $solveList = array_slice($dataset, $output_num);
+                $solveList = array_slice($solveList, $choice_num);
+
+                if($input_num != 0){
+                    $correct = true;
+                    //pr($solveList);
+                    //pr($answer);
+                    for($i=0;$i<$input_num;$i++){
+                        if($solveList[$i] != $answer[$i]){
+                            $correct = false;
+                        }
+                    }
+                }else{
+                    if ($solveList[0] == $answer[0]){
+                        $correct = true;
+                    }else{
+                        $correct = false;
+                    }
+                }
+                if($correct){
+                    $this->StudentsAssignment->id = $studentAssignmentId;
+                    $this->StudentsAssignment->saveField('answer_status', '1',false);
+                    $totalScore++;
+                }else{
+                    $this->StudentsAssignment->id = $studentAssignmentId;
+                    $this->StudentsAssignment->saveField('answer_status', '0',false);
+                }
+                $totalQuestion++;
+                $totalLevel += $p_level;
+            }
+
+            $avg_level = $totalLevel/$totalQuestion;
+
+            // Save score
+            $score=$this->AssignmentScore->findByStudentIdAndAssignmentId($this->Auth->user('id'),$asid);
+            if(!empty($score)){
+                $this->AssignmentScore->id = $score['AssignmentScore']['assignment_score_id'];
+            }
+            $this->AssignmentScore->save(array('student_id' => $this->Auth->user('id') ,
+                'assignment_id' => $asid ,
+                'score' => $totalScore ,
+                'question' => $totalQuestion ,
+                'average_level' => $avg_level));
+
+            $this->redirect('/student/showCheckAnswer/'.$this->Auth->user('id').'/'.$asid);
+
+// 			echo '<br/><br/><br/><br/><br/><br/>';
+// 			pr($studentAssignmentList);
         }
     }
 
@@ -467,85 +620,6 @@ class StudentController extends AppController{
 //     	pr($result2);
     }
 
-
-    private function getTopClassList($all){
-        $student_id = $this->Auth->user('id');
-        $student = $this->User->find('first',array(
-            'conditions' => array('User.id' => $student_id),
-            'recursive' => -1));
-        $classroom_id = $student['User']['classroom_id'];
-
-        $db = $this->AssignmentScore->getDataSource();
-        $result = $db->fetchAll('SET @rank=0');
-        $result = $db->fetchAll(
-            'SELECT *
-                    FROM (SELECT  A.* , @rank:=@rank+1 AS rank
-                                    FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
-                                    FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
-                                                                    (Assignment.id = AssignmentScore.assignment_id
-                                                            AND User.id = AssignmentScore.student_id)
-                                                            WHERE User.role = "student"
-                                                    AND User.classroom_id = ?
-                                                    GROUP BY User.id
-                                    ORDER BY total_score DESC , User.id ASC
-                    ) AS A ) AS Student
-                    WHERE Student.student_id = ?',
-            array($classroom_id,$student_id)
-        );
-
-        if (!$all)
-        {
-            $result2 = $db->fetchAll(
-                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
-                FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
-                                            (Assignment.id = AssignmentScore.assignment_id
-                                    AND User.id = AssignmentScore.student_id)
-                                    WHERE User.role = "student"
-                            AND User.classroom_id = ?
-                            GROUP BY User.id
-                ORDER BY total_score DESC , User.id ASC
-                LIMIT 3',
-                array($classroom_id)
-            );
-        }
-        else
-        {
-            $result2 = $db->fetchAll(
-                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , SUM(AssignmentScore.question) AS total_question , User.title , User.first_name , User.last_name , User.classroom_id
-                FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
-                                                (Assignment.id = AssignmentScore.assignment_id
-                                        AND User.id = AssignmentScore.student_id)
-                                        WHERE User.role = "student"
-                                AND User.classroom_id = ?
-                                GROUP BY User.id
-                ORDER BY total_score DESC , User.id ASC',
-                array($classroom_id)
-            );
-        }
-
-        $result3 = $db->fetchAll('
-                        SELECT COUNT(Assignment.id) AS total_assignment
-                        FROM assignment AS Assignment
-                        WHERE Assignment.classroom_id = ?
-                        AND Assignment.release_date <= NOW()',
-            array($classroom_id)
-        );
-
-        if(!empty($result) && ($result3[0][0]['total_assignment']==$result[0]['Student']['total_do_assignment'])){
-            $complete_assignment = true;
-        }else{
-            $complete_assignment = false;
-        }
-
-        if(!empty($result) && $result[0]['Student']['rank'] <= 3)
-            $beTop3 = true;
-        else
-            $beTop3 = false;
-
-        $return = array('Student' => $result[0]['Student'],'List' => $result2,'total_assignment' => $result3[0][0]['total_assignment'] ,'complete_assignment' => $complete_assignment,'be_top3' => $beTop3);
-
-        return $return;
-    }
     
     // public function test(){
     	// $result = $this->getTopClassList();
@@ -553,7 +627,308 @@ class StudentController extends AppController{
     	// echo '<br/><br/><br/><br/><br/><br/><br/>';
     	// pr($result);
     // }
+
+    public function view_rank_by_lesson($lesson_id){
+        $student_id = $this->Auth->user('id');
+        $student = $this->User->find('first',array(
+            'conditions' => array('User.id' => $student_id),
+            'recursive' => -1));
+        $classroom_id = $student['User']['classroom_id'];
+        $classroom = $this->Classroom->find('first',array(
+            'conditions' => array('Classroom.id' => $classroom_id),
+            'recursive' => -1));
+        $classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+        $lesson = $this->Lesson->find('first',array(
+            'conditions' => array('Lesson.lesson_id' => $lesson_id),
+            'recursive' => -1));
+        $lesson_name = $lesson['Lesson']['lesson_name'];
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll('SET @rank=0');
+        $result = $db->fetchAll(
+            'SELECT *
+				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+				FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name
+				FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+				(Assignment.id = AssignmentScore.assignment_id
+				AND User.id = AssignmentScore.student_id)
+				WHERE User.role = "student"
+				AND User.classroom_id = ?
+				AND Assignment.id IN (SELECT Assignment.id
+				FROM assignment AS Assignment , problemset AS Problemset
+				WHERE Assignment.problemset_id = Problemset.problemset_id
+				AND Problemset.course_id IN (SELECT CoursesLesson.course_id
+				FROM courses_lessons AS CoursesLesson
+				WHERE CoursesLesson.lesson_id = ?
+		)
+		)
+				GROUP BY User.id
+				ORDER BY total_score DESC , User.id ASC
+		) AS A ) AS Student
+				WHERE Student.student_id = ?',
+            array($classroom_id,$lesson_id,$student_id)
+        );
+
+        $result2 = $db->fetchAll(
+            'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name
+				FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+				(Assignment.id = AssignmentScore.assignment_id
+				AND User.id = AssignmentScore.student_id)
+				WHERE User.role = "student"
+				AND User.classroom_id = ?
+				AND Assignment.id IN (SELECT Assignment.id
+				FROM assignment AS Assignment , problemset AS Problemset
+				WHERE Assignment.problemset_id = Problemset.problemset_id
+				AND Problemset.course_id IN (SELECT CoursesLesson.course_id
+				FROM courses_lessons AS CoursesLesson
+				WHERE CoursesLesson.lesson_id = ?
+		)
+		)
+				GROUP BY User.id
+				ORDER BY total_score DESC , User.id ASC
+				LIMIT 10',
+            array($classroom_id,$lesson_id)
+        );
+
+        $result3 = $db->fetchAll('
+				SELECT COUNT(Assignment.id) AS total_assignment
+				FROM assignment AS Assignment , problemset AS Problemset
+				WHERE Assignment.classroom_id = ?
+				AND Assignment.problemset_id = Problemset.problemset_id
+				AND Problemset.course_id IN (SELECT CoursesLesson.course_id
+				FROM courses_lessons AS CoursesLesson
+				WHERE CoursesLesson.lesson_id = ?)
+				AND Assignment.release_date <= NOW()',
+            array($classroom_id,$lesson_id)
+        );
+
+        if(!empty($result) && $result[0]['Student']['rank'] <= 10)
+            $beTop10 = true;
+        else
+            $beTop10 = false;
+
+        $this->set('lesson_name',$lesson_name);
+        $this->set('classroom_name',$classroom_name);
+        if(!empty($result) && $result[0]['Student']['rank'] <= 10){
+            $this->set('beTop10InClass',true);
+        }else{
+            $this->set('beTop10InClass',false);
+        }
+        $this->set('top10ClassList',$result2);
+        $this->set('studentClass',$result);
+        $this->set('student_id',$student_id);
+
+// 		echo '<br/><br/><br/><br/><br/>';
+// 		pr($result2);
+
+        $db = $this->AssignmentScore->getDataSource();
+        $result = $db->fetchAll('SET @rank=0');
+        $result = $db->fetchAll(
+            'SELECT *
+				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+				FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name
+				FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+				(Assignment.id = AssignmentScore.assignment_id
+				AND User.id = AssignmentScore.student_id)
+				WHERE User.role = "student"
+				AND Assignment.problemset_id IN (SELECT Problemset.problemset_id
+				FROM problemset AS Problemset INNER JOIN
+				courses_lessons AS CoursesLesson
+				ON (Problemset.course_id = CoursesLesson.course_id)
+				WHERE CoursesLesson.lesson_id = ?)
+				AND User.classroom_id IN (SELECT CoursesClassroom.classroom_id
+				FROM courses_classrooms AS CoursesClassroom ,
+				courses_classrooms AS CoursesClassroom2
+				WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
+				AND CoursesClassroom2.classroom_id = ?)
+				GROUP BY User.id
+				ORDER BY total_score DESC , User.id ASC
+		) AS A ) AS Student
+				WHERE Student.student_id = ?',
+            array($lesson_id,$classroom_id,$student_id)
+        );
+
+        $result2 = $db->fetchAll(
+            'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name
+				FROM (user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) LEFT JOIN assignment_score AS AssignmentScore ON
+				(Assignment.id = AssignmentScore.assignment_id
+				AND User.id = AssignmentScore.student_id)
+				WHERE User.role = "student"
+				AND Assignment.problemset_id IN (SELECT Problemset.problemset_id
+				FROM problemset AS Problemset INNER JOIN
+				courses_lessons AS CoursesLesson
+				ON (Problemset.course_id = CoursesLesson.course_id)
+				WHERE CoursesLesson.lesson_id = ?)
+				AND User.classroom_id IN (SELECT CoursesClassroom.classroom_id
+				FROM courses_classrooms AS CoursesClassroom ,
+				courses_classrooms AS CoursesClassroom2
+				WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
+				AND CoursesClassroom2.classroom_id = ?)
+				GROUP BY User.id
+				ORDER BY total_score DESC , User.id ASC
+				LIMIT 10',
+            array($lesson_id,$classroom_id)
+        );
+
+        if(!empty($result) && $result[0]['Student']['rank'] <= 10){
+            $this->set('beTop10InCourse',true);
+        }else{
+            $this->set('beTop10InCourse',false);
+        }
+        $this->set('top10CourseList',$result2);
+        $this->set('studentCourse',$result);
+
+// 		echo '<br/><br/><br/><br/><br/>';
+// 		pr($result);
+
+    }
+
     public function leaderboard()
+    {
+        $student_id = $this->Auth->user('id');
+        $student = $this->User->find('first',array(
+            'conditions' => array('User.id' => $student_id),
+            'recursive' => -1));
+        $classroom_id = $student['User']['classroom_id'];
+        $classroom = $this->Classroom->find('first',array(
+            'conditions' => array('Classroom.id' => $classroom_id),
+            'recursive' => -1));
+        $classroom_name = $classroom['Classroom']['grade'].$classroom['Classroom']['room'];
+
+        $db = $this->Lesson->getDataSource();
+
+        $courseList = $db->fetchAll('
+				SELECT CoursesClassroom.* , Course.course_name
+				FROM courses_classrooms AS CoursesClassroom INNER JOIN course AS Course ON (CoursesClassroom.course_id = Course.course_id)
+				WHERE CoursesClassroom.classroom_id = ?
+				ORDER BY CoursesClassroom.course_id ASC
+				',array($classroom_id));
+
+        $studentClassRankList = array();
+        $studentCourseRankList = array();
+        $lessonList = array();
+        $i=0;
+        foreach ($courseList AS $course){
+            $course_id = $course['CoursesClassroom']['course_id'];
+
+
+            //////////////////// Get Class Rank //////////////////////////
+            $studentClassRank = $db->fetchAll('SET @rank=0');
+            $studentClassRank = $db->fetchAll(
+                'SELECT *
+				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+						FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name , Problemset.course_id
+								FROM ((user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) INNER JOIN problemset AS Problemset ON (Assignment.problemset_id = Problemset.problemset_id))
+								LEFT JOIN assignment_score AS AssignmentScore ON
+								(Assignment.id = AssignmentScore.assignment_id
+								AND User.id = AssignmentScore.student_id)
+						WHERE User.role = "student"
+						AND User.classroom_id = ?
+						AND Problemset.course_id = ?
+						GROUP BY User.id
+						ORDER BY total_score DESC , User.id ASC
+				) AS A ) AS Student
+				WHERE Student.student_id = ?',
+                array($classroom_id,$course_id,$student_id)
+            );
+
+            $studentClassRankList[$i]['Student'] = $studentClassRank;
+
+            $studentClassRank2 = $db->fetchAll(
+                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name , Problemset.course_id
+								FROM ((user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) INNER JOIN problemset AS Problemset ON (Assignment.problemset_id = Problemset.problemset_id))
+								LEFT JOIN assignment_score AS AssignmentScore ON
+								(Assignment.id = AssignmentScore.assignment_id
+								AND User.id = AssignmentScore.student_id)
+						WHERE User.role = "student"
+						AND User.classroom_id = ?
+						AND Problemset.course_id = ?
+						GROUP BY User.id
+						ORDER BY total_score DESC , User.id ASC',
+                array($classroom_id,$course_id)
+            );
+
+            $studentClassRankList[$i]['List'] = $studentClassRank2;
+
+
+            //////////////////// Get Course Rank //////////////////////////
+            $studentCourseRank = $db->fetchAll('SET @rank=0');
+            $studentCourseRank = $db->fetchAll(
+                'SELECT *
+				FROM (SELECT  A.* , @rank:=@rank+1 AS rank
+						FROM (SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name , Problemset.course_id
+								FROM ((user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) INNER JOIN problemset AS Problemset ON (Assignment.problemset_id = Problemset.problemset_id))
+								LEFT JOIN assignment_score AS AssignmentScore ON
+								(Assignment.id = AssignmentScore.assignment_id
+								AND User.id = AssignmentScore.student_id)
+						WHERE User.role = "student"
+						AND User.classroom_id IN (SELECT CoursesClassroom.classroom_id
+													FROM courses_classrooms AS CoursesClassroom ,
+													courses_classrooms AS CoursesClassroom2
+													WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
+													AND CoursesClassroom2.classroom_id = ?)
+						AND Problemset.course_id = ?
+						GROUP BY User.id
+						ORDER BY total_score DESC , User.id ASC
+				) AS A ) AS Student
+				WHERE Student.student_id = ?',
+                array($classroom_id,$course_id,$student_id)
+            );
+
+            $studentCourseRankList[$i]['Student'] = $studentCourseRank;
+
+            $studentCourseRank2 = $db->fetchAll(
+                'SELECT User.id AS student_id , SUM(AssignmentScore.score)*AVG(AssignmentScore.average_level) AS total_score , AVG(AssignmentScore.average_level) AS average_level , COUNT(AssignmentScore.assignment_score_id) AS total_do_assignment , COUNT(Assignment.id) AS total_assignment , User.title , User.first_name , User.middle_name , User.last_name , Problemset.course_id
+								FROM ((user AS User INNER JOIN assignment AS Assignment ON (User.classroom_id = Assignment.classroom_id)) INNER JOIN problemset AS Problemset ON (Assignment.problemset_id = Problemset.problemset_id))
+								LEFT JOIN assignment_score AS AssignmentScore ON
+								(Assignment.id = AssignmentScore.assignment_id
+								AND User.id = AssignmentScore.student_id)
+						WHERE User.role = "student"
+						AND User.classroom_id IN (SELECT CoursesClassroom.classroom_id
+													FROM courses_classrooms AS CoursesClassroom ,
+													courses_classrooms AS CoursesClassroom2
+													WHERE CoursesClassroom.course_id = CoursesClassroom2.course_id
+													AND CoursesClassroom2.classroom_id = ?)
+						AND Problemset.course_id = ?
+						GROUP BY User.id
+						ORDER BY total_score DESC , User.id ASC',
+                array($classroom_id,$course_id)
+            );
+
+            $studentCourseRankList[$i]['List'] = $studentCourseRank2;
+
+            /////////////////////////// Get Lesson List //////////////////////////
+            $lessonCourse = $db->fetchAll('
+				SELECT Lesson.lesson_name , CoursesLesson.*
+				FROM lesson AS Lesson INNER JOIN courses_lessons AS CoursesLesson ON (Lesson.lesson_id = CoursesLesson.lesson_id)
+				WHERE CoursesLesson.course_id = ?
+				',array($course_id));
+
+            $lesson_list[$i] = $lessonCourse;
+
+            $i++;
+        }
+
+
+
+        $leaderboard = $this->getTopClassList(true);
+        $this->set('student_id',$student_id);
+        $this->set('leaderboard',$leaderboard);
+        $this->set('lesson_list',$lesson_list);
+        $this->set('classroom_name',$classroom_name);
+
+        $this->set('course_list',$courseList);
+        $this->set('studentClassRankList',$studentClassRankList);
+        $this->set('studentCourseRankList',$studentCourseRankList);
+
+// 		echo '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>';
+// 		pr($courseList);
+// 		pr($studentClassRankList);
+// 		pr($studentCourseRankList);
+// 		pr($lesson_list);
+    }
+
+    /*public function leaderboard()
     {
         $student_id = $this->Auth->user('id');
         $student = $this->User->find('first',array(
@@ -575,7 +950,7 @@ class StudentController extends AppController{
         $this->set('leaderboard',$leaderboard);
         $this->set('lesson_list',$lesson_list);
 
-    }
+    }*/
 }
 
 ?>

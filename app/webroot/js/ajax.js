@@ -61,7 +61,8 @@ function problemsetGetTopic(urlStr,id){
     //alert(lesson_id);
     if( lesson_id.length == 0 ){
         //alert("now");
-        $('#ProblemDiv').empty();
+       // $('#ProblemDiv').empty();
+        $('#problemset_array').html("");
     }
     $('#ProblemDiv').empty;
     $.ajax({
@@ -70,8 +71,11 @@ function problemsetGetTopic(urlStr,id){
         type: 'GET',
         dataType: 'HTML',
         success: function (data) {
-            $('#ProblemDiv').empty();
+            //$('#ProblemDiv').empty();
+            $('#problemset_array').html("");
+            $('#TopicDiv').hide();
             $('#TopicDiv').html(data);
+            $('#TopicDiv').fadeIn("slow");
             $('html, body').animate({
                 scrollTop: $("#TopicDiv").offset().top - 50
             },1000);
@@ -83,7 +87,8 @@ function problemsetGetTopic(urlStr,id){
 function problemsetGetProblem(urlStr,id){
     var topic = $('#'+id).val();
     if(topic.length == 0){
-        $('#ProblemDiv').empty();
+       // $('#ProblemDiv').empty();
+        $('#problemset_array').html("");
     }else{
         $.ajax({
             url: urlStr+'/'+topic ,
@@ -91,10 +96,14 @@ function problemsetGetProblem(urlStr,id){
             type: 'GET',
             dataType: 'HTML',
             success: function (data) {
-                $('#ProblemDiv').html(data);
-                $('html, body').animate({
+                $('#problemset_array').html("");
+                $('#problemset_array').hide();
+                $('#problemset_array').append(data);
+                $('#problemset_array').fadeIn("slow");
+                //$('#ProblemDiv').html(data);
+                /*$('html, body').animate({
                     scrollTop: $("#problem_header").offset().top - 33
-                },1000);
+                },1000);*/
                //alert(data);
             }
         });

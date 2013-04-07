@@ -17,8 +17,8 @@ class Course extends AppModel{
             'className' => 'CoursesClassroom',
             'dependent'=> true,
         ),
-        'TeacherCourse' => array(
-            'className' => 'TeacherCourse',
+        'TeachersCourse' => array(
+            'className' => 'TeachersCourse',
             'dependent' => true
         )
     );

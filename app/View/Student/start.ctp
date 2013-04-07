@@ -46,24 +46,35 @@ echo $this->Html->script('script.js');
                             <span class='help-inline'><?php
 
                                 $main = $problem['ProblemLevel']['main_text'];
-                                //Random Dataset
-                                $dataset = rand(0,count($problem['DataSet'])-1);
+                                //Random Data set
+                                $data_set = rand(0,count($problem['DataSet'])-1);
 
-                                //Get inputs from random dataset
-                                $input = $problem['DataSet'][$dataset]['ProblemDataSet']['dataset'];
+                                //Get inputs from random data set
+                                $input = $problem['DataSet'][$data_set]['ProblemDataSet']['dataset'];
                                 $input_num = $problem['ProblemLevel']['input_num'];
                                 $output_num = $problem['ProblemLevel']['output_num'];
-                                for ($j = 0;$j < $input_num;$j++)
-                                {
-                                    $start = strrpos($input,',',null);
-                                    $input = substr($input,0,$start);
+                                $choice_num = $problem['ProblemLevel']['choice_num'];
+
+                                if ($problem['Problem']['problem_type'] == 'FIB'){
+                                    for ($j = 0;$j < $input_num;$j++)
+                                    {
+                                        $start = strrpos($input,';',null);
+                                        $input = substr($input,0,$start);
+                                    }
+                                }
+                                else{
+                                    $cut = $choice_num+1; // Number of Choice + 1 Answer in data set
+                                    for ($j = 0;$j < $cut;$j++)
+                                    {
+                                        $start = strrpos($input,';',null);
+                                        $input = substr($input,0,$start);
+                                    }
                                 }
                                 //Replace inputs field in main text
-                                $start = 0;
                                 for ($j = 1;$j <= $output_num;$j++)
                                 {
                                     $find = 'o_{' . "$j" . "}";
-                                    $end = strpos($input,',',$start);
+                                    $end = strpos($input,';',0);
                                     if ($j<$output_num)
                                         $main = str_replace($find,substr($input,0,$end),$main);
                                     else
@@ -78,23 +89,65 @@ echo $this->Html->script('script.js');
                                 {
                                     $find = 'i_{' . "$j" . "}";
                                     do{
-                                        $rand = rand(97,98);
+                                        $rand = rand(97,122);
                                     }
                                     while($chr[$rand-97] == 1);
                                     $output[$j-1] = chr($rand);
                                     $chr[$rand-97] =1;
                                     $main = str_replace($find,$output[$j-1],$main);
                                 }
+
+                                if ($problem['Problem']['problem_type'] == "MPC"){
+                                    $input = $problem['DataSet'][$data_set]['ProblemDataSet']['dataset'];
+                                    $count=0;
+                                    $start = 0;
+                                    while ($count<$output_num)
+                                    {
+                                        $start = strpos($input,';',$start)+1;
+                                        $count++;
+                                    }
+                                    $end = strrpos($input,';',null);
+                                    $choice_data = substr($input,$start,$end-$start);
+                                    $choice = array();
+                                    for ($j=0; $j < $choice_num;$j++){
+                                        $end = strpos($choice_data,';',0);
+                                        if ($j<$output_num)
+                                        {
+                                            $tmp = substr($choice_data,0,$end);
+                                            $choice[$tmp] = $tmp;
+                                        }
+                                        else
+                                        {
+                                            $tmp = substr($choice_data,0);
+                                            $choice[$tmp] = $tmp;
+                                        }
+                                        $choice_data = substr($choice_data,$end+1);
+                                    }
+                                }
                                 echo $main;
                                 ?></span>
                     </div>
+                    <?php if ($problem['Problem']['problem_type'] == "FIB"): ?>
                     <?php for ($j = 1;$j <= $problem['ProblemLevel']['input_num'];$j++): ?>
-                    <span class="help-inline"> <?php echo '$$' . $output[$j-1] . " = " . "$$"?></span>
-                    <?php echo $this->Form->text('Problem'. $i . ' ' .$j,array('class'=>'input-mini')); ?>
-                    <?php
-                endfor;
-                    echo $this->Form->hidden('Problem'. $i . ' hidden',array('value' => $dataset));
-                    ?>
+                        <span class="help-inline"> <?php echo '$$' . $output[$j-1] . " = " . "$$"?></span>
+                        <?php echo $this->Form->text('Problem'. $i . ' ' .$j,array('class'=>'input-mini')); ?>
+                        <?php endfor ?>
+                    <?php endif ?>
+
+                    <?php if ($problem['Problem']['problem_type'] == "MPC"): ?>
+                    <label class="radio">
+                        <?php
+                        $attributes = array(
+                            'legend' => false,
+                            'label' => 'false',
+                            'separator' => '</label><label class="radio">'
+                        );
+                        echo $this->Form->radio("Problem" . $i,$choice,$attributes)
+                        ?>
+                    </label>
+                    <?php endif ?>
+
+                    <?php echo $this->Form->hidden('Problem'. $i . ' hidden',array('value' => $data_set));?>
                 </div>
             </td>
         </tr>

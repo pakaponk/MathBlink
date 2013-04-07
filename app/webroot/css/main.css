@@ -361,13 +361,18 @@ input { font-size: 18px; }
 }
 
 .problemset_block{
-    background-color:#FFFFFF;
+    background-color:#FAFAFA;
     margin-bottom:5px;
     padding: 2px;
     border: 1px solid #efefef;
     border-bottom: 1px solid #efefef;
     list-style-type: none;
     margin-left: -20px;
+    width: 780px;
+}
+
+.problemset_block.notready{
+    background-color:#c73e14;
 }
 
 li { cursor: hand; cursor: pointer; }
@@ -381,4 +386,54 @@ li { cursor: hand; cursor: pointer; }
     font-weight: bold;
     list-style-type: none;
     margin-left: -20px;
+}
+
+
+.assignment_drag_hover{
+    background-color: #fbeed5;
+    margin: 5px; padding: 5px; font-size: 1.2em;
+    margin-bottom:5px;
+    padding: 2px;
+    list-style-type: none;
+    margin-left: -20px;
+    width: 780px;
+    height: 40px;
+}
+
+.problemset_drag_hover{
+    background-color: #fbeed5;
+    margin: 5px; padding: 5px; font-size: 1.2em;
+    margin-bottom:5px;
+    padding: 2px;
+    list-style-type: none;
+    width: 370px;
+    height: 40px;
+}
+
+
+.problemset_queue li{
+    border:0px;
+    border-top: 1px solid #E5e5e5;
+    border-bottom: 1px solid #E5e5e5;
+    border-left: 1px solid #E5e5e5;
+    border-right: 1px solid #E5e5e5;
+    cursor: move;
+    list-style-type: none;
+    width: 370px;
+    height: 40px;
+    margin: 1px;
+    padding: 2px;
+    /*margin-left: -20px;*/
+}
+
+
+.problemset2_block{
+    width: 370px;
+    margin-left: -20px;
+    background-color:#FAFAFA;
+    margin-bottom:5px;
+    padding: 2px;
+    border: 1px solid #efefef;
+    border-bottom: 1px solid #efefef;
+    list-style-type: none;
 }

@@ -2,7 +2,7 @@
 
 class ProblemSetController extends AppController {
 
-    public $uses = array('ProblemSet','Assignment','User','Classroom','AssignmentScore','Course');
+    public $uses = array('ProblemSet','Assignment','User','Classroom','AssignmentScore','Course','ProblemLevel','Problem');
 
     public function index(){
 
@@ -420,6 +420,30 @@ class ProblemSetController extends AppController {
         //$this->set('result2',$result2);
         //$this->set('problemset_name',$problemset_name);
         //$this->set('classroom_name',$classroom_name);
+    }
+
+    public function get_problem($problem_id){
+        //$this->autoRender = false ;
+        //pr($this->ProblemLevel->findByProblemLevelId($problem_level_id));
+        //$problem_data = $this->ProblemLevel->findByProblemLevelId($problem_level_id);
+        //$problem_id = $problem_data["Problem"]["problem_id"];
+        //pr($problem_level_id);
+        $problem_level = $this->ProblemLevel->find('all',array("conditions"=>array("ProblemLevel.problem_id" => $problem_id)));
+
+        $this->set('problem_level',$problem_level);
+    }
+
+    public function get_problem_level_id_array($problem_id){
+        $this->autoRender=false ;
+        $data = $this->ProblemLevel->find('all',array("conditions" => array("ProblemLevel.problem_id" => $problem_id)));
+        $problem_level_array = array();
+        foreach($data as $level){
+            array_push($problem_level_array,$level["ProblemLevel"]["problem_level_id"]);
+        }
+        //pr($problem_level_array);
+        echo json_encode($problem_level_array);
+        //$array = array(1,2,3,4,5,6);
+        //echo json_encode($array);
     }
 
 }

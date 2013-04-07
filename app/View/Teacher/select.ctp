@@ -12,8 +12,8 @@
     $(document).ready(function () {
         //alert("The DOM is now loaded and can be manipulated.");
         //$('#selectCourseDiv').show();
-        $("#selectCourseDiv").fadeIn("slow");
-        $('#bg').fadeIn("slow");
+       // $("#selectCourseDiv").fadeIn("slow");
+      //  $('#bg').fadeIn("slow");
     });
 </script>
 
@@ -21,6 +21,12 @@
     Assignment Portal
     <span style="float: right">
     <a class="btn btn-primary" href="javascript:open_select_course_class()">Select Course/Classroom</a>
+
+            <a class="btn btn-primary" href="<?php echo  $this->Html->url(array(
+                'controller' => 'teacher' ,
+                'action' => 'problemset_management'
+            )) ;?> ">Problem Set Management</a>
+
     </span>
 </h3>
 

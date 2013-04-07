@@ -11,11 +11,13 @@
 		foreach($studentAssignmentList as $studentAssignment){
 			$input_num = $studentAssignment['ProblemLevel']['input_num'];
 			$output_num = $studentAssignment['ProblemLevel']['output_num'];
+			$choice_num = $studentAssignment['ProblemLevel']['choice_num'];
 			$dataset = $studentAssignment['ProblemDataSet']['dataset'];
 			$student_answer = $studentAssignment['StudentsAssignment']['student_answer'];
-			$dataset = explode(",", $dataset);
-			$answer = explode(",", $student_answer);
+			$dataset = explode(";", $dataset);
+			$answer = explode(";", $student_answer);
 			$solveList = array_slice($dataset, $output_num);
+			$solveList = array_slice($solveList, $choice_num);
 			$dataList = array_slice($dataset, 0 , $output_num);
 			$answerStatus = $studentAssignment['StudentsAssignment']['answer_status'];
 

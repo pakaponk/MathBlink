@@ -9,12 +9,13 @@
 class Teacher extends AppModel{
     public $useTable = 'user';
     public $hasMany = array(
-        'ProblemSet',
-        'TeacherCourse' => array(
-            'className' => 'TeacherCourse',
+        'ProblemSet'
+        /*,
+        'TeachersCourse' => array(
+            'className' => 'TeachersCourse',
             'foreignKey' => 'teacher_id',
             'dependent'=> true,
-        )
+        )*/
     );
     public $belongsTo = array(
         'Classroom'

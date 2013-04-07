@@ -35,10 +35,10 @@
                     ));?>"><strong>Lesson Plan</strong></a>
                 </li>
                 <li class="divider-vertical"></li>
-                <li <?php if($this->action == 'leader_board' && $this->params["controller"] =="student") {?>class="active" <?php } ?>>
+                <li <?php if($this->action == 'leaderboard' && $this->params["controller"] =="student") {?>class="active" <?php } ?>>
                     <a href="<?php echo $this->Html->url(array(
                         'controller' => 'student',
-                        'action' => 'leader_board'
+                        'action' => 'leaderboard'
                     ));?>"><strong>Leader Board</strong></a>
                 </li>
                 <li class="divider-vertical"></li>

@@ -1,6 +1,6 @@
 <?php
 
-class TeacherCourse extends AppModel{
+class TeachersCourse extends AppModel{
 
     public $useTable = 'teachers_courses';
     public $primaryKey = 'teacher_course_id';

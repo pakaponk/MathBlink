@@ -11,26 +11,10 @@ class TeacherController extends AppController{
 
     public $uses = array('Lesson','Course','Topic','ProblemSet','CoursesLesson','Teacher'
                         ,'Problem','ProblemLevel','ProblemDataSet','ProblemsetsProblem'
-                        ,'Classroom','Assignment','AssignmentScore','User','TeacherCourse');
+                        ,'Classroom','Assignment','AssignmentScore','User','TeachersCourse');
     public $components = array('RequestHandler');
     public $layout = 'teacher';
 
-    public function beforeFilter(){
-        parent::beforeFilter();
-        if($this->Auth->user('role') === 'school_admin'){
-            $this->Auth->allow('add');
-            $this->layout = 'school_admin';
-        }
-    }
-
-    public function isAuthorized($user) {
-        if (isset($user['role']) && $user['role'] === 'teacher' ) {
-            return true;
-        }else{
-            $this->Session->setFlash('You have no authoritative here','flash_notification');
-        }
-        return false;
-    }
 
     private function getTopClassList($all){
         $teacher_id = $this->Auth->user('id');
@@ -82,14 +66,32 @@ class TeacherController extends AppController{
         return $return;
     }
 
+
+    public function beforeFilter(){
+        parent::beforeFilter();
+        if($this->Auth->user('role') === 'school_admin'){
+            $this->Auth->allow('add');
+            $this->layout = 'school_admin';
+        }
+    }
+
+    public function isAuthorized($user) {
+        if (isset($user['role']) && $user['role'] === 'teacher' ) {
+            return true;
+        }else{
+            $this->Session->setFlash('You have no authoritative here','flash_notification');
+        }
+        return false;
+    }
+
     public function index(){
         //only view here
-        $courses = $this->TeacherCourse->find('all',array(
+        $courses = $this->TeachersCourse->find('all',array(
             'conditions' => array(
                 'teacher_id' => $this->Auth->user('id')
             ),
             'recursive' => 2,
-            'fields' => array('TeacherCourse.course_id','Course.course_name','Course.course_id')
+            'fields' => array('TeachersCourse.course_id','Course.course_name','Course.course_id')
         ));
         //pr($courses);
         $courses_num = count($courses);
@@ -182,6 +184,19 @@ class TeacherController extends AppController{
         $this->set('lesson_list',$lesson_list_temp);
     }
 
+    public function problemset_management(){
+        $creatorID = $this->Auth->user('id');
+        //$this->ProblemSet->recursive = 2 ;
+        //$this->ProblemSet->order = "ProblemSet.ready ASC";
+
+        $problemsetArr = $this->Teacher->findById($creatorID);
+        $course_list = $this->Course->find('list');
+        //$temp = $this->ProblemSet->find('all');
+       // pr($problemsetArr);
+        $this->set('course_list',$course_list);
+        $this->set('problemset_arr',$problemsetArr);
+    }
+
     public function problemset_main($course_id=-1,$class_id=-1){
 
         if($course_id == -1 && $class_id == -1){
@@ -214,6 +229,7 @@ class TeacherController extends AppController{
         $released_list = array();
         $ended_list = array();
         $ready_list = array();
+        $notready_list = array();
 
         $assigned = array();
 
@@ -235,14 +251,20 @@ class TeacherController extends AppController{
                 array_push($ended_list,$asg["Assignment"]["problemset_id"]);
         }
 
+        //pr($problemset);
+
         foreach($problemset as $pb){
-            array_push($ready_list,$pb["problemset_id"]);
+            if($pb["ready"] == '1')
+                array_push($ready_list,$pb["problemset_id"]);
+            else
+                array_push($notready_list,$pb["problemset_id"]);
         }
 
+        //pr($notready_list);
 
         $ready_list = self::find_array_diff($ready_list,$assigned) ;
 
-
+        //pr($ready_list);
         //pr($ready_list);
         //pr($assigned_list);
         //pr($released_list);
@@ -250,6 +272,7 @@ class TeacherController extends AppController{
         //pr($status);
 
         $this->set('ready_list',$ready_list);
+        $this->set('notready_list',$notready_list);
         $this->set('assigned_list',$assigned_list);
         $this->set('released_list',$released_list);
         $this->set('ended_list',$ended_list);
@@ -361,12 +384,16 @@ class TeacherController extends AppController{
 
     public function class_report(){
         $teacher = $this->Teacher->findById($this->Auth->user('id')) ;
+        $problemset_data =  array();
+        $problemse_name = array();
         //pr($teacher["Classroom"]);
         $classroom_id = array();
         $classroom_problemset_id = array();
         for($i=0;$i < count($teacher["Classroom"]) - 7;$i++){
             $classroom_id[$i] = $teacher["Classroom"][$i]["id"];
         }
+
+//         echo '<br/><br/><br/><br/><br/><br/><br/>';
 
         for($i=0;$i<count($classroom_id);$i++){
             $arr =  $this->Assignment->find('all',array("conditions"=>array("Assignment.classroom_id" => $classroom_id[$i])));
@@ -375,11 +402,10 @@ class TeacherController extends AppController{
                 $problemset_name[$classroom_id[$i]][$j] = $arr[$j]["ProblemSet"]["problemset_name"];
 
                 $highest_score[$classroom_id[$i]][$j] = $this->requestAction(
-                         array('controller'=>'problem_set','action'=>'get_class_highest_score')
-                        ,array('pass' => array($classroom_id[$i],$arr[$j]["ProblemSet"]["problemset_id"])));
+                    array('controller'=>'problem_set','action'=>'get_class_highest_score')
+                    ,array('pass' => array($classroom_id[$i],$arr[$j]["ProblemSet"]["problemset_id"])));
 
             }
-            //pr($arr);
         }
 //class_highest_score($classroom_id,$problemset_id)
 
@@ -390,7 +416,7 @@ class TeacherController extends AppController{
         for($i=0;$i<count($problemset_data);$i++){
             for($j=0;$j<count($problemset_data[$classroom_id[$i]]);$j++){
                 $data[$classroom_id[$i]][$j] = $this->requestAction(array('controller'=>'problem_set','action'=>'get_class_progress')
-                                                ,array('pass' => array($classroom_id[$i],$problemset_data[$classroom_id[$i]][$j])));
+                    ,array('pass' => array($classroom_id[$i],$problemset_data[$classroom_id[$i]][$j])));
                 $data[$classroom_id[$i]][$j]["assignment_complete"] = $data[$classroom_id[$i]][$j][0][0][0]["assignment_complete"];
                 $data[$classroom_id[$i]][$j]["total_assignment"] = $data[$classroom_id[$i]][$j][1][0][0]["total_assignment"];
                 unset($data[$classroom_id[$i]][$j][0]);
@@ -406,7 +432,51 @@ class TeacherController extends AppController{
         $this->set('problemset_name',$problemset_name);
         $this->set('teacher_class',$teacher["Classroom"]);
         $this->set('teacher_course',$teacher["Course"]);
+
+        /////////////////////////// Course Progress ////////////////////////////////////
+        $teacher_id = $this->Auth->user('id');
+
+        $db = $this->AssignmentScore->getDataSource();
+
+        $course_list = $db->fetchAll(
+            'SELECT Course.course_id , Course.course_name
+        		FROM course AS Course INNER JOIN teachers_courses AS TeachersCourse
+        		ON (Course.course_id = TeachersCourse.course_id)
+        		WHERE TeachersCourse.teacher_id = ?
+        		ORDER BY Course.course_id
+        		',
+            array($teacher_id));
+
+        $i=0;
+        foreach($course_list AS $course){
+            $courseProgress[$i++] = $db->fetchAll(
+                'SELECT Problemset.problemset_id , Problemset.problemset_name , COUNT(Assignment.id) AS assignment_total , COUNT(AssignmentScore.assignment_score_id) AS assignment_complete
+					FROM assignment AS Assignment INNER JOIN problemset AS Problemset ON (Assignment.problemset_id = Problemset.problemset_id)
+        												LEFT JOIN (SELECT *
+																FROM	user AS Student
+																WHERE Student.classroom_id IN (SELECT CoursesClassroom.classroom_id
+																								FROM courses_classrooms AS CoursesClassroom
+                                        														INNER JOIN teachers_courses AS TeachersCourse
+                                        														ON (CoursesClassroom.course_id = TeachersCourse.course_id)
+                                        														WHERE TeachersCourse.teacher_id = ?)
+        														AND Student.role = "student") AS Stu
+    				ON (Assignment.classroom_id = Stu.classroom_id)
+					LEFT JOIN assignment_score AS AssignmentScore
+    				ON (Assignment.id = AssignmentScore.assignment_id AND Stu.id = AssignmentScore.student_id)
+					WHERE Assignment.problemset_id IN (SELECT Problemset2.problemset_id
+        												FROM problemset AS Problemset2
+        												WHERE Problemset2.course_id = ?)
+        			GROUP BY Assignment.Problemset_id
+        			ORDER BY Assignment.Problemset_id
+    			',
+                array($teacher_id,$course['Course']['course_id'])
+            );
+        }
+
+        $this->set('course_list',$course_list);
+        $this->set('courseProgress',$courseProgress);
     }
+
 
     public function save_problemset($problemset_id,$problem_level_id,$problem_status){
         $this->autoRender = false ;
@@ -720,7 +790,7 @@ class TeacherController extends AppController{
         }
     }
 
-    public function overview_student($psid)
+   /*public function overview_student($psid)
     {
         $assignments = $this->Assignment->find('all',array(
             'conditions' => array(
@@ -825,7 +895,7 @@ class TeacherController extends AppController{
     	//     	echo '<br/><br/><br/><br/><br/><br/><br/>';
     	//     	pr($result2);
        
-    }
+    }*/
     
     public function view_course_rank($lesson_id){
     	$teacher_id = $this->Auth->user('id');
@@ -870,11 +940,123 @@ class TeacherController extends AppController{
 
     public function leaderboard()
     {
-        $leaderboards = $this->getTopClassList(true);
+        /*$leaderboards = $this->getTopClassList(true);
         $this->set("leaderboards",$leaderboards);
-        //pr($leaderboards);
+        //pr($leaderboards);*/
+
+        $leaderboards = $this->getTopClassList(true);
+        $classrooms_num = count($leaderboards)-1;
+        $this->set("leaderboards",$leaderboards);
+        $this->set("classrooms_num",$classrooms_num);
     }
 
+    /*
+     * TODO : Dont forget to change url in problemset_main.ctp !!!!!
+     * */
+
+    public function assign_problemset($problemset_id,$class_id,$date,$start_time,$end_time){
+        $this->autoRender = false;
+        $date = explode(" ",$date);
+        $start_time = str_replace(';',':',$start_time);
+        $end_time = str_replace(';',':',$end_time);
+        $release_date = $date[0]." ".$start_time;
+        $end_date = $date[2]." ".$end_time;
+        //pr($release_date);
+        //pr($end_date);
+        $arr = array(
+            'id'            => '',
+            'problemset_id' => $problemset_id,
+            'classroom_id'  => $class_id ,
+            'status'        => 'assigned',
+            'release_data'  => $release_date ,
+            'end_date'      => $end_date
+        );
+        $this->Assignment->save($arr);
+    }
+
+    public function overview_student($psid)
+    {
+        $assignments = $this->Assignment->find('all',array(
+            'conditions' => array(
+                'Assignment.problemset_id' => $psid
+            ),
+        ));
+        $asids = array();
+        $classrooms = array();
+        $course_num = 0;
+        $course_end = true;
+        foreach ($assignments as $assignment)
+        {
+            array_push($asids,$assignment['Assignment']['id']);
+            array_push($classrooms,$assignment['Assignment']['classroom_id']);
+            $num = $this->User->find('count',array(
+                'conditions' => array(
+                    'classroom_id' => $assignment['Assignment']['classroom_id'],
+                    'role' => 'student'
+                )
+            ));
+            if ($assignment['Assignment']['status']!='ended')
+            {
+                $course_end = false;
+            }
+            $course_num += $num;
+        }
+        $score = $this->AssignmentScore->find('all',array(
+            'conditions' => array(
+                'assignment_id' => $asids
+            ),
+            'order' => 'score DESC'
+        ));
+        $score_num = count($score);
+        $course_students = $this->User->find('all',array(
+            'conditions' => array(
+                'User.classroom_id' => $classrooms,
+                'role' => 'student'
+            ),
+        ));
+        //pr($score);
+        if ($course_end == true)
+        {
+            $q = floor($course_num/4);
+            $assign = array();
+            for ($i = 0; $i < $score_num ; $i++)
+            {
+                array_push($assign,$score[$i]['User']['id']);
+            }
+            for ($i = 0; $i < count($course_students) ;$i++)
+            {
+                if (!is_integer(array_search($course_students[$i]['User']['id'],$assign)))
+                {
+                    array_push($score,array());
+                    $score[count($score)-1]['User'] = $course_students[$i]['User'];
+                    $score[count($score)-1]['AssignmentScore']['score'] = 0;
+                }
+            }
+        }
+        else
+        {
+            $q = floor($score_num/4);
+        }
+        $this->set('course_students',$course_students);
+        $this->set('score_num',$score_num);
+        $this->set('score',$score);
+        $this->set('course_num',$course_num);
+        $this->set('course_end',$course_end);
+        $this->set('q',$q);
+    }
+
+
+    public function unassign_problemset($problemset_id,$class_id){
+
+        $conditions = array (
+            "Assignment.problemset_id" => $problemset_id,
+            "Assignment.classroom_id"       => $class_id
+        );
+        $this->Assignment->deleteAll($conditions);
+
+    }
 }
+
+
 
 ?>
